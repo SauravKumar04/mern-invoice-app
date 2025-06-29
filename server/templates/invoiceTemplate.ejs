@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice <%= invoice.invoiceNumber %></title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 40px;
+      background-color: #f9fafb;
+      color: #1f2937;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      max-width: 850px;
+      margin: auto;
+      border: 1px solid #e5e7eb;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #6366f1;
+      padding-bottom: 16px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      max-height: 64px;
+    }
+
+    .company-info {
+      text-align: right;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .invoice-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #4f46e5;
+      margin-bottom: 8px;
+    }
+
+    .meta, .client-info, .notes {
+      font-size: 14px;
+      margin-bottom: 28px;
+      line-height: 1.8;
+    }
+
+    .meta p, .client-info p {
+      margin: 4px 0;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-top: 40px;
+      margin-bottom: 12px;
+      border-left: 4px solid #6366f1;
+      padding-left: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #f3f4f6;
+      text-align: left;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f9fafb;
+    }
+
+    .totals {
+      width: 320px;
+      float: right;
+      margin-top: 30px;
+      font-size: 14px;
+      background: #f9f9ff;
+      border: 1px solid #d1d5db;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .totals p {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+
+    .totals p strong {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .footer {
+      margin-top: 80px;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+      border-top: 1px dashed #e5e7eb;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <% if (company?.logoUrl) { %>
+        <img src="<%= company.logoUrl %>" class="logo" alt="Company Logo" />
+      <% } %>
+      <div class="company-info">
+        <div class="invoice-title">INVOICE</div>
+        <strong><%= company?.name || 'Your Company' %></strong><br />
+        <%= company?.address || '' %><br />
+        <%= company?.email || '' %><br />
+        <%= company?.phone || '' %>
+      </div>
+    </div>
+
+    <!-- Invoice Meta -->
+    <div class="meta">
+      <p><strong>Invoice #:</strong> <%= invoice.invoiceNumber %></p>
+      <p><strong>Issue Date:</strong> <%= new Date(invoice.issueDate).toLocaleDateString() %></p>
+      <p><strong>Due Date:</strong> <%= new Date(invoice.dueDate).toLocaleDateString() %></p>
+      <p><strong>Status:</strong> <%= invoice.status %></p>
+    </div>
+
+    <!-- Bill To -->
+    <div class="section-title">Bill To:</div>
+    <div class="client-info">
+      <p><%= invoice.clientName %></p>
+      <p><%= invoice.clientEmail %></p>
+      <p><%= invoice.clientAddress %></p>
+    </div>
+
+    <!-- Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% invoice.items.forEach(item => { %>
+          <tr>
+            <td><%= item.description %></td>
+            <td><%= item.quantity %></td>
+            <td>$<%= item.price.toFixed(2) %></td>
+            <td>$<%= (item.quantity * item.price).toFixed(2) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals">
+      <p><span>Tax:</span> <span>$<%= invoice.tax.toFixed(2) %></span></p>
+      <p><span>Discount:</span> <span>$<%= invoice.discount.toFixed(2) %></span></p>
+      <p><strong><span>Total:</span> <span>$<%= invoice.total.toFixed(2) %></span></strong></p>
+    </div>
+
+    <!-- Notes -->
+    <% if (invoice.notes) { %>
+      <div class="section-title">Notes</div>
+      <div class="notes">
+        <%= invoice.notes %>
+      </div>
+    <% } %>
+
+    <!-- Footer -->
+    <div class="footer">
+      Thank you for your business — we appreciate it.
+    </div>
+  </div>
+</body>
+</html>
