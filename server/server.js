@@ -13,10 +13,21 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Middlewares
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-invoice-app.netlify.app"
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ your frontend origin
-    credentials: true,               // ✅ allow cookies, headers, etc.
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
 
