@@ -8,7 +8,7 @@ export const getCompanyInfo = async () => {
 export const setCompanyInfo = async (data) => {
   const response = await api.post('/api/company', data, {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'application/json',
     }
   });
   return response.data;
