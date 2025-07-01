@@ -162,7 +162,7 @@ const generateInvoicePdfHTML = async (req, res) => {
 
     const html = await ejs.renderFile(templatePath, {
       invoice,
-      company: company.toObject(),
+      company: company ? company.toObject() : {},
     });
 
     const browser = await puppeteer.launch({
@@ -266,27 +266,34 @@ const sendInvoiceEmail = async (req, res) => {
 
     const company = await Company.findOne({ user: req.user.userId });
 
-    const templatePath = path.join(
-      __dirname,
-      "../templates/invoiceTemplate.ejs"
-    );
+    let pdfBuffer;
+    try {
+      const templatePath = path.join(
+        __dirname,
+        "../templates/invoiceTemplate.ejs"
+      );
 
-    const html = await ejs.renderFile(templatePath, {
-      invoice,
-      company: company.toObject(),
-    });
+      const html = await ejs.renderFile(templatePath, {
+        invoice,
+        company: company ? company.toObject() : {},
+      });
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: puppeteer.executablePath(),
-    });
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        executablePath: puppeteer.executablePath(),
+      });
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-    await browser.close();
+      pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+      await browser.close();
+      
+    } catch (pdfError) {
+      console.error("PDF Generation Error:", pdfError);
+      return res.status(500).json({ message: "PDF generation failed. Please try again." });
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
