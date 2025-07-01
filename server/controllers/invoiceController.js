@@ -295,7 +295,12 @@ const sendInvoiceEmail = async (req, res) => {
       company: { ...company.toObject(), logoUrl },
     });
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: puppeteer.executablePath(),
+    });
+
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
