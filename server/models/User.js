@@ -31,8 +31,7 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     resetPasswordOtp: String,
-    resetPasswordOtpExpires: Date,
-    profileImage: { type: String },
+    resetPasswordOtpExpires: Date
   },
   { timestamps: true }
 );

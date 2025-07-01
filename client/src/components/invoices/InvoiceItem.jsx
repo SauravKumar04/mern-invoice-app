@@ -56,7 +56,23 @@ const InvoiceItem = ({ invoice }) => {
             Amount
           </p>
           <p className="font-medium text-violet-800">
-            ${invoice.total.toFixed(2)}
+            $
+            {(
+              invoice.items.reduce(
+                (sum, item) => sum + item.quantity * item.price,
+                0
+              ) +
+              invoice.items.reduce(
+                (sum, item) => sum + item.quantity * item.price,
+                0
+              ) *
+                (invoice.tax / 100) -
+              invoice.items.reduce(
+                (sum, item) => sum + item.quantity * item.price,
+                0
+              ) *
+                (invoice.discount / 100)
+            ).toFixed(2)}
           </p>
         </div>
         <div className="col-span-2 sm:col-span-1 truncate">

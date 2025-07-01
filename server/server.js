@@ -2,17 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const path = require("path");
 
 dotenv.config();
 
 const app = express();
 
-// Serve static files from /uploads
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 // Middlewares
-
 const allowedOrigins = [
   "http://localhost:5173",
   "https://mern-invoice-app.netlify.app"
@@ -30,7 +25,6 @@ app.use(
     credentials: true,
   })
 );
-
 
 app.use(express.json());
 

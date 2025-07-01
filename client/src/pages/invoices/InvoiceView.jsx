@@ -181,7 +181,16 @@ const InvoiceView = () => {
           </div>
           <div className="flex justify-between pt-2 text-base font-semibold text-purple-900 border-t border-purple-200">
             <span>Total</span>
-            <span>${invoice.total.toFixed(2)}</span>
+            <span>
+  ${(
+    invoice.items.reduce((sum, item) => sum + item.quantity * item.price, 0) +
+    invoice.items.reduce((sum, item) => sum + item.quantity * item.price, 0) *
+      (invoice.tax / 100) -
+    invoice.items.reduce((sum, item) => sum + item.quantity * item.price, 0) *
+      (invoice.discount / 100)
+  ).toFixed(2)}
+</span>
+
           </div>
         </div>
       </div>

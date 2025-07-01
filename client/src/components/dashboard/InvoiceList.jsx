@@ -53,7 +53,15 @@ const InvoiceList = () => {
         <table className="min-w-[700px] w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
             <tr>
-              {["Invoice #", "Client", "Issue Date", "Due Date", "Amount", "Status", "Actions"].map((title, i) => (
+              {[
+                "Invoice #",
+                "Client",
+                "Issue Date",
+                "Due Date",
+                "Amount",
+                "Status",
+                "Actions",
+              ].map((title, i) => (
                 <th
                   key={i}
                   className={`px-6 py-3 text-left font-semibold ${
@@ -67,11 +75,16 @@ const InvoiceList = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {invoices.map((invoice) => (
-              <tr key={invoice._id} className="hover:bg-purple-50 transition duration-200">
+              <tr
+                key={invoice._id}
+                className="hover:bg-purple-50 transition duration-200"
+              >
                 <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">
                   {invoice.invoiceNumber}
                 </td>
-                <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{invoice.clientName}</td>
+                <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                  {invoice.clientName}
+                </td>
                 <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
                   {format(new Date(invoice.issueDate), "MMM dd, yyyy")}
                 </td>
@@ -79,12 +92,29 @@ const InvoiceList = () => {
                   {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
                 </td>
                 <td className="px-6 py-4 font-semibold text-purple-700 whitespace-nowrap">
-                  ${invoice.total.toFixed(2)}
+                  $
+                  {(
+                    invoice.items.reduce(
+                      (sum, item) => sum + item.quantity * item.price,
+                      0
+                    ) +
+                    invoice.items.reduce(
+                      (sum, item) => sum + item.quantity * item.price,
+                      0
+                    ) *
+                      (invoice.tax / 100) -
+                    invoice.items.reduce(
+                      (sum, item) => sum + item.quantity * item.price,
+                      0
+                    ) *
+                      (invoice.discount / 100)
+                  ).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${
-                      statusColors[invoice.status] || "bg-gray-100 text-gray-700"
+                      statusColors[invoice.status] ||
+                      "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {invoice.status}
@@ -122,9 +152,14 @@ const InvoiceList = () => {
       {/* ✅ Mobile View */}
       <div className="sm:hidden px-4 py-4 space-y-4">
         {invoices.map((invoice) => (
-          <div key={invoice._id} className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+          <div
+            key={invoice._id}
+            className="bg-white border border-gray-200 rounded-xl shadow-sm p-4"
+          >
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-purple-700 font-semibold text-sm">#{invoice.invoiceNumber}</h3>
+              <h3 className="text-purple-700 font-semibold text-sm">
+                #{invoice.invoiceNumber}
+              </h3>
               <span
                 className={`text-xs font-semibold px-2 py-1 rounded-full ${
                   statusColors[invoice.status] || "bg-gray-100 text-gray-700"
@@ -137,14 +172,33 @@ const InvoiceList = () => {
               <strong>Client:</strong> {invoice.clientName}
             </p>
             <p className="text-sm text-gray-800">
-              <strong>Issue:</strong> {format(new Date(invoice.issueDate), "MMM dd, yyyy")}
+              <strong>Issue:</strong>{" "}
+              {format(new Date(invoice.issueDate), "MMM dd, yyyy")}
             </p>
             <p className="text-sm text-gray-800">
-              <strong>Due:</strong> {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
+              <strong>Due:</strong>{" "}
+              {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
             </p>
             <p className="text-sm text-purple-700 font-bold">
-              <strong>Total:</strong> ${invoice.total.toFixed(2)}
+              <strong>Total:</strong> $
+              {(
+                invoice.items.reduce(
+                  (sum, item) => sum + item.quantity * item.price,
+                  0
+                ) +
+                invoice.items.reduce(
+                  (sum, item) => sum + item.quantity * item.price,
+                  0
+                ) *
+                  (invoice.tax / 100) -
+                invoice.items.reduce(
+                  (sum, item) => sum + item.quantity * item.price,
+                  0
+                ) *
+                  (invoice.discount / 100)
+              ).toFixed(2)}
             </p>
+
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 to={`/invoices/view/${invoice._id}`}

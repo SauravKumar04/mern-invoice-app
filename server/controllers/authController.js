@@ -8,20 +8,16 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // 1. Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // 2. Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 4. Create new user (isVerified = false for now)
     const newUser = new User({
       name,
       email,
@@ -32,7 +28,6 @@ const registerUser = async (req, res) => {
 
     await newUser.save();
 
-    // 5. Send OTP via email
     const message = `Your OTP for Invoice App registration is: ${otp}`;
     await sendEmail(email, "Verify your email", message);
 
@@ -44,8 +39,6 @@ const registerUser = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-// Email Verify OTP
 
 const verifyOtp = async (req, res) => {
   try {
@@ -76,36 +69,25 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-// User Login:
-// Check if user exists
-// Verify password
-// Check if isVerified === true
-// Generate JWT token
-// Return user info + token
-
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2. Check if email is verified
     if (!user.isVerified) {
       return res.status(401).json({ message: "Email not verified" });
     }
 
-    // 3. Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // 4. Create JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -117,7 +99,6 @@ const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        profileImage: user.profileImage,
       },
     });
   } catch (error) {
@@ -126,7 +107,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-//Forgot Password
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -135,15 +115,12 @@ const forgotPassword = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Set OTP and expiry (e.g., 15 mins)
     user.resetPasswordOtp = otp;
     user.resetPasswordOtpExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    // Send Email
     await sendEmail(
       email,
       "Password Reset OTP",
@@ -157,7 +134,6 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password
 const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
@@ -168,7 +144,6 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid request" });
     }
 
-    // Check OTP and expiry
     if (
       user.resetPasswordOtp !== otp ||
       user.resetPasswordOtpExpires < Date.now()
@@ -176,11 +151,9 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
 
-    // Clear OTP fields
     user.resetPasswordOtp = undefined;
     user.resetPasswordOtpExpires = undefined;
 
@@ -193,9 +166,8 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Resend OTP
 const resendOtp = async (req, res) => {
-  const { email, type } = req.body; // type = "verify" or "reset"
+  const { email, type } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -226,7 +198,6 @@ const resendOtp = async (req, res) => {
   }
 };
 
-// Update Profile
 const updateProfile = async (req, res) => {
   try {
     const { name, email, currentPassword, newPassword } = req.body;
@@ -235,12 +206,9 @@ const updateProfile = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Update name/email
     if (name) user.name = name;
     if (email) user.email = email;
-    if (req.body.profileImage) user.profileImage = req.body.profileImage; 
 
-    // Change password if requested
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
@@ -260,7 +228,6 @@ const updateProfile = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        profileImage: user.profileImage || null,
       },
     });
   } catch (error) {
@@ -269,41 +236,7 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// Upload profile picture
-// ✅ updated controller
-const uploadProfilePicture = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    const user = await User.findById(req.user.userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const relativePath = req.file.path.split("uploads/")[1];
-    user.profileImage = relativePath;
-
-    await user.save();
-
-    res.status(200).json({
-      message: "Profile picture uploaded successfully",
-      imageUrl: `uploads/${relativePath}`,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        profileImage: `uploads/${relativePath}`,
-      },
-    });
-  } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Logout (stateless version)
 const logoutUser = async (req, res) => {
-  // The client should just delete the token, but we send a response
   res.status(200).json({ message: "Logged out successfully" });
 };
 
@@ -315,6 +248,5 @@ module.exports = {
   resetPassword,
   resendOtp,
   updateProfile,
-  uploadProfilePicture,
   logoutUser,
 };

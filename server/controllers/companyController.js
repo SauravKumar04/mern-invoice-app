@@ -3,7 +3,6 @@ const Company = require("../models/Company");
 const setCompanyInfo = async (req, res) => {
   try {
     const { name, address, phone, website } = req.body;
-    const logoPath = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     const existing = await Company.findOne({ user: req.user.userId });
 
@@ -12,9 +11,6 @@ const setCompanyInfo = async (req, res) => {
       existing.address = address;
       existing.phone = phone;
       existing.website = website;
-      if (logoPath) {
-        existing.logo = logoPath; // ✅ Only update logo if new one is uploaded
-      }
       const updated = await existing.save();
       return res.json({ message: "Company info updated", company: updated });
     }
@@ -25,7 +21,6 @@ const setCompanyInfo = async (req, res) => {
       address,
       phone,
       website,
-      logo: logoPath,
     });
 
     const saved = await newCompany.save();

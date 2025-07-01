@@ -7,7 +7,6 @@ const companySchema = new mongoose.Schema(
     address: { type: String },
     phone: { type: String },
     website: { type: String },
-    logo: { type: String }, // URL to uploaded image
   },
   { timestamps: true }
 );

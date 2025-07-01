@@ -35,10 +35,6 @@
       margin-bottom: 32px;
     }
 
-    .logo {
-      max-height: 64px;
-    }
-
     .company-info {
       text-align: right;
       font-size: 14px;
@@ -131,9 +127,7 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <% if (company?.logoUrl) { %>
-        <img src="<%= company.logoUrl %>" class="logo" alt="Company Logo" />
-      <% } %>
+      <div></div> <!-- Empty div to preserve spacing -->
       <div class="company-info">
         <div class="invoice-title">INVOICE</div>
         <strong><%= company?.name || 'Your Company' %></strong><br />

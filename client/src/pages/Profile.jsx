@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile, uploadProfileImage } from "../api/auth";
+import { updateProfile } from "../api/auth";
 import { toast } from "react-toastify";
 import FormInput from "../components/ui/FormInput";
 import Button from "../components/ui/Button";
@@ -33,18 +33,6 @@ const Profile = () => {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleImageChange = async (e) => {
-    if (e.target.files[0]) {
-      try {
-        const response = await uploadProfileImage(e.target.files[0]);
-        updateUser(response.user); // ✅ instead of response.imageUrl
-        toast.success("Profile picture updated successfully!");
-      } catch (error) {
-        toast.error("Failed to upload profile picture");
-      }
-    }
-  };
-
   const validate = () => {
     const newErrors = {};
     if (formData.newPassword && formData.newPassword.length < 6) {
@@ -66,7 +54,6 @@ const Profile = () => {
       const data = {
         name: formData.name,
         email: formData.email,
-        profileImage: currentUser?.profileImage,
       };
       if (formData.currentPassword && formData.newPassword) {
         data.currentPassword = formData.currentPassword;
@@ -99,34 +86,8 @@ const Profile = () => {
         </h1>
 
         <div className="flex flex-col md:flex-row gap-10">
-          {/* Profile Image */}
-          <div className="md:w-1/3 flex flex-col items-center">
-            {currentUser?.profileImage ? (
-              <img
-                src={`${import.meta.env.VITE_API}/${currentUser.profileImage}`}
-                alt="Profile"
-                className="h-36 w-36 rounded-full object-cover border-4 border-purple-200 shadow-md hover:scale-105 transition-transform"
-              />
-            ) : (
-              <div className="h-36 w-36 rounded-full bg-purple-100 border-2 border-dashed border-purple-300 flex items-center justify-center text-purple-700 text-sm shadow-inner">
-                No Image
-              </div>
-            )}
-            <label className="mt-5">
-              <span className="inline-block px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition cursor-pointer shadow-sm">
-                Change Photo
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
-          </div>
-
-          {/* Form */}
-          <div className="md:w-2/3">
+          {/* Form only (no image section) */}
+          <div className="w-full">
             <form onSubmit={handleSubmit} className="space-y-6">
               <FormInput
                 label="Name"

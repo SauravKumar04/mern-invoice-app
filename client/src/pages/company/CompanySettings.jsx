@@ -17,7 +17,6 @@ const CompanySettings = () => {
     address: '',
     phone: '',
     website: '',
-    logo: null,
   });
 
   useEffect(() => {
@@ -30,7 +29,6 @@ const CompanySettings = () => {
           address: data?.address || '',
           phone: data?.phone || '',
           website: data?.website || '',
-          logo: null,
         });
       } catch (error) {
         toast.error('Failed to load company info');
@@ -45,10 +43,6 @@ const CompanySettings = () => {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleFileChange = (e) => {
-    setFormData({ ...formData, logo: e.target.files[0] });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -57,7 +51,6 @@ const CompanySettings = () => {
       data.append('address', formData.address);
       data.append('phone', formData.phone);
       data.append('website', formData.website);
-      if (formData.logo) data.append('logo', formData.logo);
 
       const savedCompany = await setCompanyInfo(data);
       setCompany(savedCompany);
@@ -116,32 +109,6 @@ const CompanySettings = () => {
             onChange={handleChange}
             type="url"
           />
-
-          {/* Logo Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Company Logo
-            </label>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              {company?.logo ? (
-                <img
-                  src={`${import.meta.env.VITE_API}${company.logo}`}
-                  alt="Company Logo"
-                  className="h-16 w-16 object-contain border border-violet-100 rounded-lg bg-white shadow"
-                />
-              ) : (
-                <div className="h-16 w-16 bg-violet-50 border-2 border-dashed rounded-lg flex items-center justify-center text-violet-300 text-sm">
-                  No logo
-                </div>
-              )}
-              <input
-                type="file"
-                onChange={handleFileChange}
-                accept="image/*"
-                className="block w-full sm:w-auto text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-100 file:text-violet-700 hover:file:bg-violet-200"
-              />
-            </div>
-          </div>
 
           {/* Save Button */}
           <div className="pt-6 border-t border-gray-100">

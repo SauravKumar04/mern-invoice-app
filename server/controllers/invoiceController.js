@@ -24,15 +24,13 @@ const createInvoice = async (req, res) => {
       notes,
     } = req.body;
 
-    // Parse and sanitize items
     const parsedItems = items.map((item) => ({
       name: item.name,
-      description: item.description || "", // Ensure required field is present
+      description: item.description || "",
       quantity: Number(item.quantity),
       price: Number(item.price),
     }));
 
-    // Calculate subtotal and total
     const subTotal = parsedItems.reduce(
       (sum, item) => sum + item.quantity * item.price,
       0
@@ -64,7 +62,6 @@ const createInvoice = async (req, res) => {
   }
 };
 
-// Get all invoices for logged-in user
 const getInvoices = async (req, res) => {
   try {
     const filter = { user: req.user.userId };
@@ -72,14 +69,13 @@ const getInvoices = async (req, res) => {
     if (req.query.status) {
       filter.status = req.query.status;
     }
-    // Filter by due date
+
     if (req.query.due === "overdue") {
       filter.dueDate = { $lt: new Date() };
     } else if (req.query.due === "upcoming") {
       const today = new Date();
       const inSevenDays = new Date();
       inSevenDays.setDate(today.getDate() + 7);
-
       filter.dueDate = {
         $gte: today,
         $lte: inSevenDays,
@@ -94,7 +90,6 @@ const getInvoices = async (req, res) => {
   }
 };
 
-// Get single invoice
 const getInvoiceById = async (req, res) => {
   try {
     const invoice = await Invoice.findOne({
@@ -113,7 +108,6 @@ const getInvoiceById = async (req, res) => {
   }
 };
 
-// Update Invoice
 const updateInvoice = async (req, res) => {
   try {
     const updated = await Invoice.findOneAndUpdate(
@@ -131,7 +125,6 @@ const updateInvoice = async (req, res) => {
   }
 };
 
-// Delete Invoice
 const deleteInvoice = async (req, res) => {
   try {
     const deleted = await Invoice.findOneAndDelete({
@@ -148,7 +141,6 @@ const deleteInvoice = async (req, res) => {
   }
 };
 
-//Generate Invoice PDF
 const generateInvoicePdfHTML = async (req, res) => {
   try {
     const invoice = await Invoice.findOne({
@@ -163,20 +155,16 @@ const generateInvoicePdfHTML = async (req, res) => {
       return res.status(404).json({ message: "Company info not found" });
     }
 
-    // Load the EJS template
     const templatePath = path.join(
       __dirname,
       "../templates/invoiceTemplate.ejs"
     );
-    const logoUrl = company.logo
-      ? `${process.env.BASE_URL}${company.logo}`
-      : null;
+
     const html = await ejs.renderFile(templatePath, {
       invoice,
-      company: { ...company.toObject(), logoUrl },
+      company: company.toObject(),
     });
 
-    // Launch Puppeteer
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -193,8 +181,6 @@ const generateInvoicePdfHTML = async (req, res) => {
       "Content-Disposition",
       `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`
     );
-    console.log("Company used in PDF:", company);
-    console.log("Invoice used in PDF:", invoice);
 
     res.send(pdfBuffer);
   } catch (err) {
@@ -226,12 +212,10 @@ const updateInvoiceStatus = async (req, res) => {
   }
 };
 
-//Dashboard
 const getDashboardStats = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Fetch invoice stats
     const totalInvoices = await Invoice.countDocuments({ user: userId });
 
     const statusCounts = await Invoice.aggregate([
@@ -269,7 +253,6 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-// Send Invoice Email
 const sendInvoiceEmail = async (req, res) => {
   try {
     const invoice = await Invoice.findOne({
@@ -287,12 +270,10 @@ const sendInvoiceEmail = async (req, res) => {
       __dirname,
       "../templates/invoiceTemplate.ejs"
     );
-    const logoUrl = company.logo
-      ? `${process.env.BASE_URL}${company.logo}`
-      : null;
+
     const html = await ejs.renderFile(templatePath, {
       invoice,
-      company: { ...company.toObject(), logoUrl },
+      company: company.toObject(),
     });
 
     const browser = await puppeteer.launch({
