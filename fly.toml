@@ -1,0 +1,11 @@
+app = "mern-invoice-app" # or your Fly.io app name
+primary_region = "sin"   # you can change to 'lhr', 'iad', 'ams', etc.
+
+[env]
+PORT = "4000"
+
+[experimental]
+auto_rollback = true
+
+[build]
+builder = "Dockerfile"
