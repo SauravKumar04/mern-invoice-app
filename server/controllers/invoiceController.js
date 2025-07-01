@@ -280,8 +280,14 @@ const sendInvoiceEmail = async (req, res) => {
 
       const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-        executablePath: puppeteer.executablePath(),
+        args: [
+          "--no-sandbox", 
+          "--disable-setuid-sandbox", 
+          "--disable-dev-shm-usage",
+          "--disable-web-security",
+          "--disable-features=VizDisplayCompositor"
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
       });
 
       const page = await browser.newPage();
@@ -292,7 +298,53 @@ const sendInvoiceEmail = async (req, res) => {
       
     } catch (pdfError) {
       console.error("PDF Generation Error:", pdfError);
-      return res.status(500).json({ message: "PDF generation failed. Please try again." });
+      console.error("Error details:", {
+        message: pdfError.message,
+        stack: pdfError.stack,
+        puppeteerExecutable: require('puppeteer').executablePath()
+      });
+      
+      // Fallback: Send email without PDF attachment
+      console.log("📧 Fallback: Sending email without PDF attachment...");
+      try {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: `"${company?.name || "Invoice App"}" <${process.env.EMAIL_USER}>`,
+          to: invoice.clientEmail,
+          subject: `Invoice #${invoice.invoiceNumber}`,
+          html: `
+            <h2>Invoice #${invoice.invoiceNumber}</h2>
+            <p>Hi ${invoice.clientName},</p>
+            <p>Your invoice details:</p>
+            <ul>
+              <li><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</li>
+              <li><strong>Total Amount:</strong> $${invoice.total.toFixed(2)}</li>
+              <li><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</li>
+            </ul>
+            <p>Please contact us for the PDF version of this invoice.</p>
+            <p>Thank you for your business!</p>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        return res.json({ 
+          message: "Invoice notification sent via email (PDF generation temporarily unavailable)" 
+        });
+        
+      } catch (emailError) {
+        console.error("Fallback email also failed:", emailError);
+        return res.status(500).json({ 
+          message: "Failed to send invoice email",
+          error: process.env.NODE_ENV === 'development' ? emailError.message : 'Email sending error'
+        });
+      }
     }
 
     const transporter = nodemailer.createTransport({
