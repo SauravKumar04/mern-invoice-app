@@ -8,18 +8,24 @@ const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex flex-col flex-1 min-w-0">
-        <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-40">
+          <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
+        </div>
 
-        {/* Allow both x and y scrolling */}
-        <main className="flex-1 p-4 sm:p-6 overflow-auto bg-white rounded-tl-3xl shadow-inner">
-          <Outlet />
-        </main>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          <main className="flex-1 p-4 sm:p-6 bg-white rounded-tl-3xl shadow-inner overflow-auto">
+            <Outlet />
+          </main>
 
-        <Footer />
+          {/* Footer at bottom of content */}
+          <Footer />
+        </div>
       </div>
     </div>
   );
