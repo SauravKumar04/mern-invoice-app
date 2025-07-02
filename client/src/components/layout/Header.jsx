@@ -39,8 +39,8 @@ const Header = ({ onMenuClick }) => {
 
           {/* Left: Menu + Logo */}
           <div className="flex items-center gap-3 sm:gap-4">
-            {/* Mobile menu button */}
-            <div className="md:hidden">
+            {/* Menu button - always visible */}
+            <div>
               <button
                 onClick={onMenuClick}
                 className="group p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-110 active:scale-95 backdrop-blur-sm border border-white/20"
