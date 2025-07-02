@@ -42,27 +42,35 @@ const InvoiceEdit = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader size="lg" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader size="lg" />
+          <p className="mt-4 text-violet-600 font-medium">Loading invoice...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="bg-white/90 border border-purple-200 shadow-xl rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-        <h1 className="text-3xl font-extrabold text-violet-700 mb-8 tracking-tight">
-          Edit Invoice
-        </h1>
-
-        <div className="border-t border-gray-200 mb-6" />
-
-        <InvoiceForm 
-          initialValues={invoice} 
-          onSubmit={handleSubmit} 
-          isSubmitting={isSubmitting} 
-        />
+    <div className="min-h-full">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-4 sm:px-6 lg:px-8 py-6 mb-6">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Edit Invoice
+          </h1>
+          <p className="mt-2 text-violet-100">
+            Update the invoice details below
+          </p>
+        </div>
       </div>
+
+      {/* Form */}
+      <InvoiceForm 
+        initialValues={invoice} 
+        onSubmit={handleSubmit} 
+        isSubmitting={isSubmitting} 
+      />
     </div>
   );
 };

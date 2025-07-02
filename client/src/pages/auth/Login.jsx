@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { useAuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import FormInput from '../../components/ui/FormInput';
 import Button from '../../components/ui/Button';
+import { FileText, Sparkles, Star } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { login: authLogin } = useAuthContext();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,73 +38,148 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-fuchsia-200 via-rose-100 to-indigo-100 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-lg border border-purple-200 rounded-3xl shadow-2xl p-8 sm:p-10 relative overflow-hidden">
-
-        {/* Decorative gradient blobs */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-purple-300 rounded-full opacity-20 blur-3xl animate-pulse -z-10" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-fuchsia-300 rounded-full opacity-20 blur-3xl animate-pulse delay-200 -z-10" />
-
-              {/* Heading */}
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-fuchsia-600 drop-shadow">
-            Welcome Back 👋
-          </h2>
-          <p className="text-sm text-purple-500 mt-1">
-            Login to continue managing your invoices
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-900 via-purple-900 to-fuchsia-900 flex items-center justify-center px-4 py-10 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating invoice icons */}
+        <div className="absolute top-1/4 left-1/4 animate-float">
+          <FileText className="w-8 h-8 text-white/10 rotate-12" />
         </div>
+        <div className="absolute top-1/3 right-1/4 animate-float-delayed">
+          <FileText className="w-6 h-6 text-white/10 -rotate-12" />
+        </div>
+        <div className="absolute bottom-1/4 left-1/3 animate-float">
+          <FileText className="w-10 h-10 text-white/10 rotate-45" />
+        </div>
+        
+        {/* Floating sparkles */}
+        <div className="absolute top-1/6 right-1/6 animate-sparkle">
+          <Sparkles className="w-4 h-4 text-violet-300/30" />
+        </div>
+        <div className="absolute bottom-1/6 left-1/6 animate-sparkle-delayed">
+          <Star className="w-5 h-5 text-fuchsia-300/30" />
+        </div>
+        <div className="absolute top-2/3 right-1/3 animate-sparkle">
+          <Star className="w-3 h-3 text-purple-300/30" />
+        </div>
+        
+        {/* Gradient orbs */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-violet-400/20 to-transparent rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-fuchsia-400/20 to-transparent rounded-full blur-3xl animate-pulse-slow animation-delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-purple-400/10 to-transparent rounded-full blur-2xl animate-spin-slow" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <FormInput
-            label="Email address"
-            name="email"
-            type="email"
-            required
-            placeholder="you@example.com"
-            value={formData.email}
-            onChange={handleChange}
-          />
-
-          <FormInput
-            label="Password"
-            name="password"
-            type="password"
-            required
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-          />
-
-          <div className="flex justify-end text-sm">
-            <Link
-              to="/forgot-password"
-              className="text-fuchsia-600 hover:text-fuchsia-800 font-semibold transition-all duration-200"
-            >
-              Forgot password?
-            </Link>
+      {/* Main login form */}
+      <div className={`w-full max-w-md relative z-10 transition-all duration-1000 ${
+        mounted 
+          ? 'opacity-100 translate-y-0 scale-100' 
+          : 'opacity-0 translate-y-8 scale-95'
+      }`}>
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 sm:p-10 relative overflow-hidden">
+          
+          {/* Inner decorative elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-400/20 to-transparent rounded-full blur-2xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-fuchsia-400/20 to-transparent rounded-full blur-2xl animate-pulse animation-delay-500" />
+          
+          {/* Animated header */}
+          <div className={`text-center mb-8 transition-all duration-1000 delay-300 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}>
+            <div className="flex items-center justify-center mb-4">
+              <div className="relative">
+                <FileText className="w-12 h-12 text-violet-300 animate-bounce-slow" />
+                <div className="absolute -top-1 -right-1">
+                  <Sparkles className="w-4 h-4 text-fuchsia-300 animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-purple-300 drop-shadow-lg">
+              Welcome Back 👋
+            </h2>
+            <p className="text-sm text-violet-200/80 mt-2 animate-fade-in-up animation-delay-500">
+              Login to continue managing your invoices
+            </p>
           </div>
 
-          <Button
-            type="submit"
-            fullWidth
-            disabled={loading}
-            className="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-700 hover:to-indigo-700 text-white font-semibold text-base py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </Button>
+          {/* Form with staggered animations */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className={`transition-all duration-700 delay-500 ${
+              mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+            }`}>
+              <FormInput
+                label="Email address"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
 
-          <p className="text-center text-sm text-gray-500">
-            Don’t have an account?{' '}
-            <Link
-              to="/register"
-              className="text-purple-600 hover:text-purple-800 font-medium transition duration-200"
-            >
-              Register
-            </Link>
-          </p>
-        </form>
+            <div className={`transition-all duration-700 delay-700 ${
+              mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+            }`}>
+              <FormInput
+                label="Password"
+                name="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={`flex justify-end text-sm transition-all duration-700 delay-900 ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+            }`}>
+              <Link
+                to="/forgot-password"
+                className="text-violet-300 hover:text-violet-100 font-semibold transition-all duration-300 hover:scale-105"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <div className={`transition-all duration-700 delay-1100 ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}>
+              <Button
+                type="submit"
+                fullWidth
+                disabled={loading}
+                className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold text-base py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 relative overflow-hidden group"
+              >
+                <span className="relative z-10">
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Signing in...
+                    </div>
+                  ) : (
+                    'Sign in'
+                  )}
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              </Button>
+            </div>
+
+            <div className={`text-center text-sm text-violet-200/70 transition-all duration-700 delay-1300 ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+            }`}>
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="text-violet-300 hover:text-violet-100 font-medium transition-all duration-300 hover:scale-105 inline-block"
+              >
+                Register
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
+
     </div>
   );
 };

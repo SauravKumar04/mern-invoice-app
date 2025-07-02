@@ -36,20 +36,25 @@ const InvoiceCreate = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="bg-white/90 border border-purple-200 shadow-xl rounded-2xl p-6 sm:p-10 backdrop-blur-sm">
-        <h1 className="text-3xl font-extrabold text-violet-700 mb-8 tracking-tight">
-          Create New Invoice
-        </h1>
-
-        <div className="border-t border-gray-200 mb-6" />
-
-        <InvoiceForm 
-          initialValues={initialValues} 
-          onSubmit={handleSubmit} 
-          isSubmitting={isSubmitting} 
-        />
+    <div className="min-h-full">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-4 sm:px-6 lg:px-8 py-6 mb-6">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Create New Invoice
+          </h1>
+          <p className="mt-2 text-violet-100">
+            Fill in the details below to create a new invoice
+          </p>
+        </div>
       </div>
+
+      {/* Form */}
+      <InvoiceForm 
+        initialValues={initialValues} 
+        onSubmit={handleSubmit} 
+        isSubmitting={isSubmitting} 
+      />
     </div>
   );
 };
