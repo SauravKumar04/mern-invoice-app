@@ -114,37 +114,28 @@ const Dashboard = () => {
         </div>
       </section>
 
-      {/* Invoices and Activity */}
-      <section className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-1000 delay-500 ${
+      {/* Recent Invoices and Activity - Stacked Vertically */}
+      <section className={`space-y-8 transition-all duration-1000 delay-500 ${
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}>
-        <div className="lg:col-span-2">
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 relative overflow-hidden group">
-            {/* Hover effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <h2 className="text-lg font-semibold text-gray-800">Recent Invoices</h2>
-              </div>
-              <InvoiceList />
-            </div>
+        
+        {/* Recent Invoices */}
+        <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+          {/* Hover effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <div className="relative z-10">
+            <InvoiceList />
           </div>
         </div>
         
-        <div className="lg:col-span-1">
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 relative overflow-hidden group">
-            {/* Hover effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <h2 className="text-lg font-semibold text-gray-800">Recent Activity</h2>
-              </div>
-              <RecentActivity />
-            </div>
+        {/* Recent Activity */}
+        <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+          {/* Hover effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <div className="relative z-10">
+            <RecentActivity />
           </div>
         </div>
       </section>
