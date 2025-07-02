@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Menu, FileText } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 import { logout } from '../../api/auth';
+import Avatar from '../ui/Avatar';
 
 const Header = ({ onMenuClick }) => {
   const { currentUser, logout: authLogout } = useContext(AuthContext);
@@ -46,9 +47,16 @@ const Header = ({ onMenuClick }) => {
         {/* Right: User Info + Logout */}
         {currentUser && (
           <div className="flex items-center gap-3 sm:gap-5">
-            <span className="text-sm sm:text-base font-medium text-white max-w-[120px] truncate">
-              {currentUser.name}
-            </span>
+            <div className="flex items-center gap-3">
+              <Avatar 
+                src={currentUser.avatar} 
+                name={currentUser.name} 
+                size="md"
+              />
+              <span className="text-sm sm:text-base font-medium text-white max-w-[120px] truncate">
+                {currentUser.name}
+              </span>
+            </div>
 
             <button
               onClick={handleLogout}

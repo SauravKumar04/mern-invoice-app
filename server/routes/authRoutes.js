@@ -10,6 +10,7 @@ const {
   logoutUser,
 } = require("../controllers/authController");
 const protect = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 const { forgotPassword } = require("../controllers/authController");
 
 // @route   POST /api/auth/register
@@ -43,7 +44,7 @@ router.post("/reset-password", resetPassword);
 router.post("/resend-otp", resendOtp);
 
 //Update Profile
-router.put("/update-profile", protect, updateProfile);
+router.put("/update-profile", protect, upload.single('avatar'), updateProfile);
 
 //Logout
 router.post("/logout", logoutUser);

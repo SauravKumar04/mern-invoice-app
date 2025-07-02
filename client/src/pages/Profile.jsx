@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import FormInput from "../components/ui/FormInput";
 import Button from "../components/ui/Button";
 import Loader from "../components/ui/Loader";
+import AvatarUpload from "../components/ui/AvatarUpload";
 
 const Profile = () => {
   const { currentUser, updateUser } = useAuth();
@@ -15,6 +16,7 @@ const Profile = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [avatar, setAvatar] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -51,16 +53,20 @@ const Profile = () => {
 
     setLoading(true);
     try {
-      const data = {
-        name: formData.name,
-        email: formData.email,
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      
       if (formData.currentPassword && formData.newPassword) {
-        data.currentPassword = formData.currentPassword;
-        data.newPassword = formData.newPassword;
+        formDataToSend.append('currentPassword', formData.currentPassword);
+        formDataToSend.append('newPassword', formData.newPassword);
       }
 
-      const updatedUser = await updateProfile(data);
+      if (avatar) {
+        formDataToSend.append('avatar', avatar);
+      }
+
+      const updatedUser = await updateProfile(formDataToSend);
       updateUser(updatedUser.user);
       toast.success("Profile updated successfully!");
       setFormData({
@@ -69,6 +75,7 @@ const Profile = () => {
         newPassword: "",
         confirmPassword: "",
       });
+      setAvatar(null);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
@@ -86,8 +93,17 @@ const Profile = () => {
         </h1>
 
         <div className="flex flex-col md:flex-row gap-10">
-          {/* Form only (no image section) */}
-          <div className="w-full">
+          {/* Avatar Section */}
+          <div className="md:w-1/3 flex justify-center">
+            <AvatarUpload
+              currentAvatar={currentUser?.avatar}
+              onAvatarChange={setAvatar}
+              name={currentUser?.name}
+            />
+          </div>
+
+          {/* Form Section */}
+          <div className="md:w-2/3">
             <form onSubmit={handleSubmit} className="space-y-6">
               <FormInput
                 label="Name"

@@ -31,7 +31,14 @@ export const resendOtp = async (data) => {
 };
 
 export const updateProfile = async (data) => {
-  const response = await api.put('/api/auth/update-profile', data);
+  // Check if data contains a file (avatar)
+  const isFormData = data instanceof FormData;
+  
+  const response = await api.put('/api/auth/update-profile', data, {
+    headers: isFormData ? {
+      'Content-Type': 'multipart/form-data',
+    } : {},
+  });
   return response.data; // ✅ should still include updated user info
 };
 
