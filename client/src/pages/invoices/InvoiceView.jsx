@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { getInvoiceById, sendInvoiceEmail } from "../../api/invoices";
 import { toast } from "react-toastify";
 import Loader from "../../components/ui/Loader";
-import InvoicePDF from "../../components/invoices/InvoicePDF";
 import TemplatePDFDownload from "../../components/invoices/TemplatePDFDownload";
 import { format } from "date-fns";
 import { 
@@ -217,7 +216,6 @@ const InvoiceView = () => {
                   invoiceNumber={invoice.invoiceNumber}
                   currentTemplate={invoice.template}
                 />
-                <InvoicePDF invoiceId={id} />
                 
                 <button
                   onClick={handleSendEmail}

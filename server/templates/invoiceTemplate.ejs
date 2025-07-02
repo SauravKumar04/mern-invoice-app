@@ -520,12 +520,9 @@
           <tbody>
             <% invoice.items.forEach(item => { %>
               <tr>
-                <td>
-                  <div class="item-description"><%= item.name %></div>
-                  <% if (item.description) { %>
-                    <div class="item-details"><%= item.description %></div>
-                  <% } %>
-                </td>
+                                  <td>
+                    <div class="item-description"><%= item.description %></div>
+                  </td>
                 <td style="text-align: center;"><%= item.quantity %></td>
                 <td class="text-right">$<%= item.price.toFixed(2) %></td>
                 <td class="text-right">$<%= (item.quantity * item.price).toFixed(2) %></td>
