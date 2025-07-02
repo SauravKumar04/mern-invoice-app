@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
 
 const registerUser = async (req, res) => {
   try {
@@ -99,6 +101,7 @@ const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
@@ -209,6 +212,18 @@ const updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (email) user.email = email;
 
+    // Handle avatar upload
+    if (req.file) {
+      // Delete old avatar file if it exists
+      if (user.avatar) {
+        const oldPath = path.join(__dirname, '../uploads', path.basename(user.avatar));
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      user.avatar = req.file.filename;
+    }
+
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
@@ -228,6 +243,7 @@ const updateProfile = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar,
       },
     });
   } catch (error) {

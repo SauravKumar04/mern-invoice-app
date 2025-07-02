@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
+    avatar: {
+      type: String,
+      default: null,
+    },
     isVerified: {
       type: Boolean,
       default: false,
