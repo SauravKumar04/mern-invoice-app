@@ -11,6 +11,14 @@ const Layout = () => {
     <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header - Not sticky, scrolls with content */}
         <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
