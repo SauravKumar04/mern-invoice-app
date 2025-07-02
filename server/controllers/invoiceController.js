@@ -168,25 +168,25 @@ const generatePDFWithPDFKit = async (invoice, company) => {
       // Subtotal
       doc.fontSize(12).fillColor('#4b5563').font('Helvetica');
       doc.text('Subtotal', totalsX + 20, yPos + 20);
-      doc.text(`$${subtotal.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 20);
+      doc.text(`$${subtotal.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 20);
 
       // Tax (if any)
       if (invoice.tax > 0) {
         doc.text('Tax', totalsX + 20, yPos + 40);
-        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 40);
+        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 40);
       }
 
       // Discount (if any)
       if (invoice.discount > 0) {
         doc.text('Discount', totalsX + 20, yPos + 60);
-        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 60);
+        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 60);
       }
 
       // Total
       doc.rect(totalsX + 10, yPos + 80, totalsWidth - 20, 2).fill('#8b5cf6');
       doc.fontSize(16).fillColor('#4c1d95').font('Helvetica-Bold');
       doc.text('Total Amount', totalsX + 20, yPos + 90);
-      doc.text(`$${invoice.total.toFixed(2)}`, totalsX + totalsWidth - 100, yPos + 90);
+      doc.text(`$${invoice.total.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 90);
 
       // Notes (if any)
       if (invoice.notes) {
