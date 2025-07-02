@@ -45,9 +45,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       </div>
       
       {/* Main content */}
-      <div className="relative z-10 px-6 pt-20 h-full overflow-y-auto">
+      <div className="relative z-10 flex flex-col h-full px-6 pt-20 overflow-y-auto">
         {/* User Info Card */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 mb-8 shadow-xl hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 mb-8 shadow-xl hover:bg-white/15 transition-all duration-300 transform hover:scale-105 flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="bg-gradient-to-br from-violet-400 to-fuchsia-500 rounded-xl w-14 h-14 flex items-center justify-center text-white text-xl font-bold shadow-lg border border-white/20">
@@ -73,7 +73,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Navigation */}
-        <nav>
+        <nav className="flex-shrink-0">
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-violet-200/60 uppercase tracking-wider px-2">
               Navigation
@@ -110,8 +110,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Bottom decorative section */}
-        <div className="mt-auto pt-8 pb-6">
+        {/* Bottom decorative section - pushed to bottom */}
+        <div className="mt-auto pt-8 pb-6 flex-shrink-0">
           <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm border border-white/20 rounded-xl p-4 text-center">
             <div className="flex items-center justify-center mb-2">
               <Sparkles className="w-5 h-5 text-violet-300 animate-pulse" />
