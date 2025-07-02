@@ -12,10 +12,8 @@ const Layout = () => {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex flex-col flex-1 min-w-0">
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-40">
-          <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
-        </div>
+        {/* Header - Not sticky, scrolls with content */}
+        <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
