@@ -389,7 +389,17 @@ const generateInvoicePdfHTML = async (req, res) => {
     });
 
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
+      ],
     });
     const page = await browser.newPage();
 
@@ -508,11 +518,14 @@ const sendInvoiceEmail = async (req, res) => {
       const browser = await puppeteer.launch({
         headless: true,
         args: [
-          "--no-sandbox", 
-          "--disable-setuid-sandbox", 
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
           "--disable-dev-shm-usage",
-          "--disable-web-security",
-          "--disable-features=VizDisplayCompositor"
+          "--disable-accelerated-2d-canvas",
+          "--no-first-run",
+          "--no-zygote",
+          "--single-process",
+          "--disable-gpu"
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
       });
