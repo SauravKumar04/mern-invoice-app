@@ -30,7 +30,7 @@ const registerUser = async (req, res) => {
 
     await newUser.save();
 
-    const message = `Your OTP for Invoice App registration is: ${otp}`;
+    const message = `Your OTP for InvoX registration is: ${otp}`;
     await sendEmail(email, "Verify your email", message);
 
     return res

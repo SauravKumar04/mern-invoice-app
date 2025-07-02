@@ -101,12 +101,16 @@ const VerifyOtp = () => {
           }`}>
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
-                <CheckCircle className="w-12 h-12 text-violet-300 animate-bounce-slow" />
-                <div className="absolute -top-1 -right-1">
-                  <Sparkles className="w-4 h-4 text-fuchsia-300 animate-pulse" />
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-violet-300 via-fuchsia-300 to-purple-300 rounded-xl shadow-lg animate-bounce-slow">
+                  <span className="text-violet-900 font-extrabold text-lg">X</span>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-violet-400/30 via-fuchsia-400/30 to-purple-400/30 rounded-xl blur-sm opacity-0 animate-pulse" />
+                <CheckCircle className="absolute -bottom-1 -right-1 w-5 h-5 text-fuchsia-300 animate-pulse" />
               </div>
             </div>
+            <p className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-200 to-fuchsia-200 mb-2">
+              Invo<span className="text-fuchsia-200">X</span>
+            </p>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-purple-300 drop-shadow-lg mb-2">
               Verify Your Email ✉️
             </h2>
