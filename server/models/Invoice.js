@@ -40,6 +40,11 @@ const invoiceSchema = new mongoose.Schema(
       default: "Draft",
     },
     notes: { type: String },
+    template: {
+      type: String,
+      enum: ["invoiceTemplate", "modernTemplate", "creativeTemplate", "minimalTemplate"],
+      default: "invoiceTemplate",
+    },
   },
   {
     timestamps: true,

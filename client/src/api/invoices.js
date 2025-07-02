@@ -31,10 +31,16 @@ export const getDashboardStats = async () => {
   return response.data;
 };
 
-export const generateInvoicePdf = async (id) => {
-  const response = await api.get(`/api/invoices/${id}/pdf-html`, {
+export const generateInvoicePdf = async (id, template = null) => {
+  const endpoint = template ? `/api/invoices/${id}/pdf-html/${template}` : `/api/invoices/${id}/pdf-html`;
+  const response = await api.get(endpoint, {
     responseType: 'blob'
   });
+  return response.data;
+};
+
+export const getInvoiceTemplates = async () => {
+  const response = await api.get('/api/invoices/templates');
   return response.data;
 };
 

@@ -5,6 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { toast } from 'react-toastify';
+import TemplateSelector from './TemplateSelector';
 import { 
   Trash2, 
   Plus, 
@@ -67,6 +68,7 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
             } else if (!validateEmail(values.clientEmail)) {
               errors.clientEmail = 'Invalid email';
             }
+            if (!values.template) errors.template = 'Required';
             return errors;
           }}
         >
@@ -351,6 +353,12 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Template Selection Section */}
+              <TemplateSelector
+                selectedTemplate={values.template}
+                onTemplateChange={(template) => setFieldValue('template', template)}
+              />
 
               {/* Items Section */}
               <div className={`transition-all duration-1000 delay-400 ${

@@ -20,6 +20,7 @@ const InvoiceCreate = () => {
     dueDate: '',
     status: 'Draft',
     notes: '',
+    template: 'invoiceTemplate',
   };
 
   const handleSubmit = async (values) => {

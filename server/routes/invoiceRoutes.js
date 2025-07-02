@@ -10,6 +10,7 @@ const {
   generateInvoicePdfHTML,
   updateInvoiceStatus,
   getDashboardStats,
+  getInvoiceTemplates,
 } = require("../controllers/invoiceController");
 const { sendInvoiceEmail } = require("../controllers/invoiceController");
 
@@ -22,8 +23,14 @@ router.get("/", protect, getInvoices);
 // Dashboard statistics (MUST come before `/:id`)
 router.get("/dashboard/stats", protect, getDashboardStats);
 
+// Get available invoice templates (MUST come before `/:id`)
+router.get("/templates", protect, getInvoiceTemplates);
+
 // Generate PDF for a specific invoice (MUST come before `/:id`)
 router.get("/:id/pdf-html", protect, generateInvoicePdfHTML);
+
+// Generate PDF for a specific invoice with template (MUST come before `/:id`)
+router.get("/:id/pdf-html/:template", protect, generateInvoicePdfHTML);
 
 // Update only the status of a specific invoice (MUST come before `/:id`)
 router.patch("/:id/status", protect, updateInvoiceStatus);

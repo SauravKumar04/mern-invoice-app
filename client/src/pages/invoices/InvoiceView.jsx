@@ -4,6 +4,7 @@ import { getInvoiceById, sendInvoiceEmail } from "../../api/invoices";
 import { toast } from "react-toastify";
 import Loader from "../../components/ui/Loader";
 import InvoicePDF from "../../components/invoices/InvoicePDF";
+import TemplatePDFDownload from "../../components/invoices/TemplatePDFDownload";
 import { format } from "date-fns";
 import { 
   ArrowLeft, 
@@ -211,6 +212,11 @@ const InvoiceView = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
+                <TemplatePDFDownload 
+                  invoiceId={id} 
+                  invoiceNumber={invoice.invoiceNumber}
+                  currentTemplate={invoice.template}
+                />
                 <InvoicePDF invoiceId={id} />
                 
                 <button
