@@ -235,6 +235,7 @@ const createInvoice = async (req, res) => {
       dueDate,
       status,
       notes,
+      template = 'invoiceTemplate',
     } = req.body;
 
     const parsedItems = items.map((item) => ({
@@ -265,6 +266,7 @@ const createInvoice = async (req, res) => {
       dueDate,
       status,
       notes,
+      template,
     });
 
     const saved = await invoice.save();
@@ -368,9 +370,17 @@ const generateInvoicePdfHTML = async (req, res) => {
       return res.status(404).json({ message: "Company info not found" });
     }
 
+    // Get template name from URL parameter or use invoice's template
+    const template = req.params.template || invoice.template || 'invoiceTemplate';
+    const allowedTemplates = ['invoiceTemplate', 'modernTemplate', 'creativeTemplate', 'minimalTemplate'];
+    
+    if (!allowedTemplates.includes(template)) {
+      return res.status(400).json({ message: "Invalid template selected" });
+    }
+
     const templatePath = path.join(
       __dirname,
-      "../templates/invoiceTemplate.ejs"
+      `../templates/${template}.ejs`
     );
 
     const html = await ejs.renderFile(templatePath, {
@@ -752,6 +762,43 @@ const sendInvoiceEmail = async (req, res) => {
   }
 };
 
+// Get available invoice templates
+const getInvoiceTemplates = async (req, res) => {
+  try {
+    const templates = [
+      {
+        id: 'invoiceTemplate',
+        name: 'Classic',
+        description: 'Professional gradient design with modern styling',
+        preview: '/api/templates/preview/invoiceTemplate.png'
+      },
+      {
+        id: 'modernTemplate',
+        name: 'Modern',
+        description: 'Clean and contemporary design with elegant typography',
+        preview: '/api/templates/preview/modernTemplate.png'
+      },
+      {
+        id: 'creativeTemplate',
+        name: 'Creative',
+        description: 'Bold and colorful design with playful animations',
+        preview: '/api/templates/preview/creativeTemplate.png'
+      },
+      {
+        id: 'minimalTemplate',
+        name: 'Minimal',
+        description: 'Simple and clean design focused on readability',
+        preview: '/api/templates/preview/minimalTemplate.png'
+      }
+    ];
+
+    res.json(templates);
+  } catch (error) {
+    console.error("Get Templates Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createInvoice,
   getInvoices,
@@ -762,4 +809,5 @@ module.exports = {
   updateInvoiceStatus,
   getDashboardStats,
   sendInvoiceEmail,
+  getInvoiceTemplates,
 };

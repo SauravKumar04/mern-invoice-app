@@ -192,7 +192,10 @@ const InvoiceEdit = () => {
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}>
         <InvoiceForm 
-          initialValues={invoice} 
+          initialValues={{
+            ...invoice,
+            template: invoice.template || 'invoiceTemplate'
+          }} 
           onSubmit={handleSubmit} 
           isSubmitting={isSubmitting} 
         />

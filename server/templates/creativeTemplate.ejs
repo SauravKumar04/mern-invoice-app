@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice <%= invoice.invoiceNumber %> - InvoX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #2d3748;
+      padding: 20px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .invoice-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .invoice-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd);
+      background-size: 600% 100%;
+      animation: rainbowGradient 8s ease infinite;
+    }
+
+    @keyframes rainbowGradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .invoice-header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+      padding: 40px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .invoice-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.05) 2px,
+        rgba(255,255,255,0.05) 4px
+      );
+      animation: diagonalMove 15s linear infinite;
+    }
+
+    @keyframes diagonalMove {
+      0% { transform: translateX(-100px) translateY(-100px); }
+      100% { transform: translateX(100px) translateY(100px); }
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand-logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      color: white;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+      transform: rotate(-5deg);
+      animation: logoFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: rotate(-5deg) translateY(0px); }
+      50% { transform: rotate(-5deg) translateY(-10px); }
+    }
+
+    .brand-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: textGradient 4s ease infinite;
+    }
+
+    @keyframes textGradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .brand-tagline {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 600;
+      color: #4ecdc4;
+    }
+
+    .invoice-title {
+      text-align: right;
+    }
+
+    .invoice-title h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 56px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      letter-spacing: -2px;
+      transform: skew(-5deg);
+    }
+
+    .invoice-number {
+      font-size: 20px;
+      font-weight: 700;
+      opacity: 0.95;
+      background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .content-section {
+      padding: 48px;
+      background: #fafafa;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    .info-card {
+      background: white;
+      padding: 32px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transform: rotate(1deg);
+      transition: all 0.3s ease;
+    }
+
+    .info-card:nth-child(2) {
+      transform: rotate(-1deg);
+    }
+
+    .info-card:hover {
+      transform: rotate(0deg) scale(1.02);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .card-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+      border-radius: 2px;
+    }
+
+    .company-name, .client-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #2c3e50;
+      margin-bottom: 16px;
+    }
+
+    .info-item {
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #5a6c7d;
+      font-weight: 500;
+    }
+
+    .invoice-details {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .detail-card {
+      background: white;
+      padding: 28px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .detail-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #96ceb4, #ffeaa7, #dda0dd);
+      animation: detailGradient 3s ease infinite;
+    }
+
+    @keyframes detailGradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .detail-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .detail-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #718096;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .detail-value {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #2d3748;
+    }
+
+    .status-paid { color: #38a169; }
+    .status-sent { color: #ed8936; }
+    .status-draft { color: #718096; }
+
+    .items-section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #2c3e50;
+      margin-bottom: 32px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .section-title::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+      border-radius: 3px;
+      animation: titleUnderline 3s ease infinite;
+    }
+
+    @keyframes titleUnderline {
+      0%, 100% { transform: scaleX(1); }
+      50% { transform: scaleX(1.1); }
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .items-table thead {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      color: white;
+    }
+
+    .items-table th {
+      padding: 24px 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      text-align: left;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .items-table td {
+      padding: 24px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 15px;
+    }
+
+    .items-table tbody tr:nth-child(odd) {
+      background: #f7fafc;
+    }
+
+    .items-table tbody tr:hover {
+      background: linear-gradient(90deg, #ffeaa7, #74b9ff, #fd79a8);
+      background-size: 400% 400%;
+      animation: rowHover 2s ease infinite;
+      color: white;
+      font-weight: 600;
+    }
+
+    @keyframes rowHover {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .item-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      color: #2d3748;
+      font-size: 16px;
+    }
+
+    .item-description {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .text-right {
+      text-align: right;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+
+    .totals-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 32px;
+    }
+
+    .totals-card {
+      background: white;
+      padding: 36px;
+      border-radius: 24px;
+      min-width: 420px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .totals-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #74b9ff, #fd79a8, #fdcb6e);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      border-bottom: 2px dotted #e2e8f0;
+      font-size: 16px;
+    }
+
+    .total-row:last-child {
+      border-bottom: none;
+      margin-top: 20px;
+      padding-top: 28px;
+      border-top: 4px solid #4ecdc4;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      margin: 20px -36px -36px -36px;
+      padding: 28px 36px 36px 36px;
+      border-radius: 0 0 24px 24px;
+    }
+
+    .total-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    .total-value {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      color: #2d3748;
+    }
+
+    .final-total .total-label,
+    .final-total .total-value {
+      font-size: 28px;
+      color: #2c3e50;
+    }
+
+    .notes-section {
+      margin-top: 48px;
+      padding: 32px;
+      background: linear-gradient(135deg, #fff5b4, #ffeaa7);
+      border-radius: 20px;
+      border-left: 8px solid #fdcb6e;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .notes-section::before {
+      content: '💡';
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 32px;
+      opacity: 0.3;
+    }
+
+    .notes-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #d63031;
+      margin-bottom: 16px;
+    }
+
+    .notes-content {
+      color: #e17055;
+      font-size: 15px;
+      line-height: 1.7;
+      font-weight: 500;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .footer-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 16px;
+      background: linear-gradient(45deg, #4ecdc4, #45b7d1, #96ceb4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 32px;
+      padding-top: 32px;
+      border-top: 2px dashed rgba(255,255,255,0.2);
+    }
+
+    .footer-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 20px;
+      color: white;
+      transform: rotate(-10deg);
+    }
+
+    .footer-text {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .invoice-container { box-shadow: none; border-radius: 0; }
+      .invoice-container::before { display: none; }
+      .footer::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <div class="header-content">
+        <div class="brand-section">
+          <div class="brand-logo">X</div>
+          <div>
+            <div class="brand-text">InvoX</div>
+            <div class="brand-tagline">Creative Invoicing</div>
+          </div>
+        </div>
+        <div class="invoice-title">
+          <h1>INVOICE</h1>
+          <div class="invoice-number">#<%= invoice.invoiceNumber %></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="card-title">From</div>
+          <div class="company-name"><%= company?.name || 'Your Company' %></div>
+          <% if (company?.address) { %>
+            <div class="info-item"><%= company.address %></div>
+          <% } %>
+          <% if (company?.email) { %>
+            <div class="info-item">✉️ <%= company.email %></div>
+          <% } %>
+          <% if (company?.phone) { %>
+            <div class="info-item">📞 <%= company.phone %></div>
+          <% } %>
+        </div>
+
+        <div class="info-card">
+          <div class="card-title">Bill To</div>
+          <div class="client-name"><%= invoice.clientName %></div>
+          <div class="info-item">✉️ <%= invoice.clientEmail %></div>
+          <% if (invoice.clientAddress) { %>
+            <div class="info-item">📍 <%= invoice.clientAddress %></div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="invoice-details">
+        <div class="detail-card">
+          <div class="detail-label">Issue Date</div>
+          <div class="detail-value"><%= new Date(invoice.issueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Due Date</div>
+          <div class="detail-value"><%= new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Status</div>
+          <div class="detail-value status-<%= invoice.status.toLowerCase() %>"><%= invoice.status %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Amount Due</div>
+          <div class="detail-value" style="color: #e74c3c;">$<%= invoice.total.toFixed(2) %></div>
+        </div>
+      </div>
+
+      <div class="items-section">
+        <h2 class="section-title">🛍️ Products & Services</h2>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th style="text-align: center;">Quantity</th>
+              <th style="text-align: right;">Unit Price</th>
+              <th style="text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invoice.items.forEach(item => { %>
+              <tr>
+                <td>
+                  <div class="item-name"><%= item.name %></div>
+                  <% if (item.description) { %>
+                    <div class="item-description"><%= item.description %></div>
+                  <% } %>
+                </td>
+                <td style="text-align: center;"><%= item.quantity %></td>
+                <td class="text-right">$<%= item.price.toFixed(2) %></td>
+                <td class="text-right">$<%= (item.quantity * item.price).toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+
+        <div class="totals-section">
+          <div class="totals-card">
+            <% 
+              const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            %>
+            <div class="total-row">
+              <span class="total-label">💰 Subtotal</span>
+              <span class="total-value">$<%= subtotal.toFixed(2) %></span>
+            </div>
+            <% if (invoice.tax > 0) { %>
+              <div class="total-row">
+                <span class="total-label">🏛️ Tax</span>
+                <span class="total-value">$<%= invoice.tax.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <% if (invoice.discount > 0) { %>
+              <div class="total-row">
+                <span class="total-label">🎁 Discount</span>
+                <span class="total-value">-$<%= invoice.discount.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <div class="total-row final-total">
+              <span class="total-label">🎯 TOTAL AMOUNT</span>
+              <span class="total-value">$<%= invoice.total.toFixed(2) %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if (invoice.notes) { %>
+        <div class="notes-section">
+          <div class="notes-title">📝 Additional Notes</div>
+          <div class="notes-content"><%= invoice.notes %></div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="footer">
+      <div class="footer-title">🎉 Thank You!</div>
+      <div class="footer-subtitle">Your business means the world to us. We can't wait to work with you again!</div>
+      <div class="footer-brand">
+        <div class="footer-logo">X</div>
+        <div class="footer-text">Powered by InvoX</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

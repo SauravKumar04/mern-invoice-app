@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice <%= invoice.invoiceNumber %> - InvoX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Source Sans Pro', sans-serif;
+      background: #ffffff;
+      color: #374151;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .invoice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 2px solid #f3f4f6;
+      position: relative;
+    }
+
+    .invoice-header {
+      background: #ffffff;
+      padding: 48px 48px 32px 48px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      background: #111827;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 24px;
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .brand-text {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      color: #111827;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .brand-tagline {
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .invoice-title {
+      text-align: right;
+    }
+
+    .invoice-title h1 {
+      font-size: 48px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+      color: #111827;
+    }
+
+    .invoice-number {
+      font-size: 16px;
+      font-weight: 600;
+      color: #6b7280;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .content-section {
+      padding: 48px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .info-card {
+      background: #ffffff;
+      padding: 0;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #111827;
+      padding-bottom: 8px;
+      display: inline-block;
+    }
+
+    .company-name, .client-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+
+    .info-item {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .invoice-details {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      margin-bottom: 48px;
+      padding: 32px 0;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .detail-card {
+      background: #ffffff;
+      padding: 0;
+      text-align: left;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .detail-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .status-paid { color: #059669; }
+    .status-sent { color: #d97706; }
+    .status-draft { color: #6b7280; }
+
+    .items-section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+    }
+
+    .items-table thead {
+      background: #f9fafb;
+      border-top: 2px solid #111827;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .items-table th {
+      padding: 16px 0;
+      font-weight: 700;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #111827;
+    }
+
+    .items-table td {
+      padding: 20px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    .items-table tbody tr:last-child td {
+      border-bottom: 2px solid #111827;
+    }
+
+    .item-name {
+      font-weight: 600;
+      color: #111827;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .item-description {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .text-right {
+      text-align: right;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .text-center {
+      text-align: center;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .totals-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 32px;
+    }
+
+    .totals-card {
+      background: #ffffff;
+      padding: 0;
+      min-width: 320px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .total-row:last-child {
+      border-bottom: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px solid #111827;
+      font-size: 18px;
+    }
+
+    .total-label {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .total-value {
+      font-weight: 700;
+      color: #111827;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .final-total .total-label,
+    .final-total .total-value {
+      font-size: 20px;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .notes-section {
+      margin-top: 48px;
+      padding: 24px 0;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .notes-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .notes-content {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .footer {
+      background: #f9fafb;
+      color: #6b7280;
+      padding: 32px 48px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .footer-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .footer-subtitle {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .footer-logo {
+      width: 24px;
+      height: 24px;
+      background: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .footer-text {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111827;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    @media print {
+      body { padding: 0; }
+      .invoice-container { border: none; }
+    }
+
+    /* Clean geometric decorations */
+    .invoice-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #111827;
+    }
+
+    .invoice-container::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #111827;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <div class="header-content">
+        <div class="brand-section">
+          <div class="brand-logo">X</div>
+          <div>
+            <div class="brand-text">InvoX</div>
+            <div class="brand-tagline">Professional Invoicing</div>
+          </div>
+        </div>
+        <div class="invoice-title">
+          <h1>INVOICE</h1>
+          <div class="invoice-number">#<%= invoice.invoiceNumber %></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="card-title">Bill From</div>
+          <div class="company-name"><%= company?.name || 'Your Company' %></div>
+          <% if (company?.address) { %>
+            <div class="info-item"><%= company.address %></div>
+          <% } %>
+          <% if (company?.email) { %>
+            <div class="info-item"><%= company.email %></div>
+          <% } %>
+          <% if (company?.phone) { %>
+            <div class="info-item"><%= company.phone %></div>
+          <% } %>
+        </div>
+
+        <div class="info-card">
+          <div class="card-title">Bill To</div>
+          <div class="client-name"><%= invoice.clientName %></div>
+          <div class="info-item"><%= invoice.clientEmail %></div>
+          <% if (invoice.clientAddress) { %>
+            <div class="info-item"><%= invoice.clientAddress %></div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="invoice-details">
+        <div class="detail-card">
+          <div class="detail-label">Issue Date</div>
+          <div class="detail-value"><%= new Date(invoice.issueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Due Date</div>
+          <div class="detail-value"><%= new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Status</div>
+          <div class="detail-value status-<%= invoice.status.toLowerCase() %>"><%= invoice.status %></div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Amount Due</div>
+          <div class="detail-value">$<%= invoice.total.toFixed(2) %></div>
+        </div>
+      </div>
+
+      <div class="items-section">
+        <h2 class="section-title">Items</h2>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Description</th>
+              <th style="width: 15%;" class="text-center">Qty</th>
+              <th style="width: 17.5%;" class="text-right">Unit Price</th>
+              <th style="width: 17.5%;" class="text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invoice.items.forEach(item => { %>
+              <tr>
+                <td>
+                  <div class="item-name"><%= item.name %></div>
+                  <% if (item.description) { %>
+                    <div class="item-description"><%= item.description %></div>
+                  <% } %>
+                </td>
+                <td class="text-center"><%= item.quantity %></td>
+                <td class="text-right">$<%= item.price.toFixed(2) %></td>
+                <td class="text-right">$<%= (item.quantity * item.price).toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+
+        <div class="totals-section">
+          <div class="totals-card">
+            <% 
+              const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            %>
+            <div class="total-row">
+              <span class="total-label">Subtotal</span>
+              <span class="total-value">$<%= subtotal.toFixed(2) %></span>
+            </div>
+            <% if (invoice.tax > 0) { %>
+              <div class="total-row">
+                <span class="total-label">Tax</span>
+                <span class="total-value">$<%= invoice.tax.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <% if (invoice.discount > 0) { %>
+              <div class="total-row">
+                <span class="total-label">Discount</span>
+                <span class="total-value">-$<%= invoice.discount.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <div class="total-row final-total">
+              <span class="total-label">Total</span>
+              <span class="total-value">$<%= invoice.total.toFixed(2) %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if (invoice.notes) { %>
+        <div class="notes-section">
+          <div class="notes-title">Notes</div>
+          <div class="notes-content"><%= invoice.notes %></div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="footer">
+      <div class="footer-title">Thank you for your business</div>
+      <div class="footer-subtitle">Payment is due within the terms specified above.</div>
+      <div class="footer-brand">
+        <div class="footer-logo">X</div>
+        <div class="footer-text">Powered by InvoX</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
