@@ -182,44 +182,42 @@ const Dashboard = () => {
         <DashboardStats stats={stats} />
       </div>
 
-      {/* Content Grid */}
-      <div className={`max-w-7xl mx-auto transition-all duration-1000 delay-500 ${
-        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-      }`}>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          
-          {/* Recent Invoices */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 relative group">
-            {/* Hover effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            <div className="relative z-10">
-              <InvoiceList />
-            </div>
-          </div>
-          
-          {/* Recent Activity */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 relative group">
-            {/* Hover effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            <div className="relative z-10">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg">
-                    <Activity className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">Recent Activity</h3>
-                    <p className="text-sm text-gray-600">Latest updates and changes</p>
-                  </div>
-                </div>
-              </div>
-              <RecentActivity />
-            </div>
-          </div>
-        </div>
-      </div>
+             {/* Content Sections - Stacked Vertically */}
+       <div className={`max-w-7xl mx-auto space-y-8 transition-all duration-1000 delay-500 ${
+         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+       }`}>
+         
+         {/* Recent Invoices */}
+         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 relative group">
+           {/* Hover effect */}
+           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+           
+           <div className="relative z-10">
+             <InvoiceList />
+           </div>
+         </div>
+         
+         {/* Recent Activity */}
+         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 relative group">
+           {/* Hover effect */}
+           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+           
+           <div className="relative z-10">
+             <div className="p-6 border-b border-gray-100">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg">
+                   <Activity className="w-5 h-5 text-white" />
+                 </div>
+                 <div>
+                   <h3 className="text-xl font-bold text-gray-900">Recent Activity</h3>
+                   <p className="text-sm text-gray-600">Latest updates and changes</p>
+                 </div>
+               </div>
+             </div>
+             <RecentActivity />
+           </div>
+         </div>
+       </div>
 
       {/* Quick Actions Footer */}
       <div className={`max-w-7xl mx-auto mt-8 transition-all duration-1000 delay-700 ${
