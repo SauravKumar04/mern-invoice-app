@@ -85,19 +85,31 @@ const Login = () => {
           <div className={`text-center mb-8 transition-all duration-1000 delay-300 ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}>
-            <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <FileText className="w-12 h-12 text-violet-300 animate-bounce-slow" />
-                <div className="absolute -top-1 -right-1">
-                  <Sparkles className="w-4 h-4 text-fuchsia-300 animate-pulse" />
+                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-300 via-fuchsia-300 to-purple-300 rounded-2xl shadow-2xl animate-bounce-slow">
+                  <span className="text-violet-900 font-extrabold text-2xl">X</span>
+                </div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-violet-400/40 via-fuchsia-400/40 to-purple-400/40 rounded-2xl blur-lg opacity-60 animate-pulse" />
+                <div className="absolute -top-2 -right-2">
+                  <Sparkles className="w-5 h-5 text-fuchsia-300 animate-pulse" />
+                </div>
+                <div className="absolute -bottom-1 -left-1">
+                  <Sparkles className="w-3 h-3 text-violet-300 animate-pulse animation-delay-500" />
                 </div>
               </div>
             </div>
-            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-purple-300 drop-shadow-lg">
+            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-purple-300 drop-shadow-lg mb-2">
+              Invo<span className="text-fuchsia-200">X</span>
+            </h1>
+            <p className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-200 to-fuchsia-200 mb-4">
+              Next-gen invoicing.
+            </p>
+            <h2 className="text-3xl font-bold text-white mb-2">
               Welcome Back 👋
             </h2>
-            <p className="text-sm text-violet-200/80 mt-2 animate-fade-in-up animation-delay-500">
-              Login to continue managing your invoices
+            <p className="text-sm text-violet-200/80 animate-fade-in-up animation-delay-500">
+              Login to continue revolutionizing your invoice management
             </p>
           </div>
 

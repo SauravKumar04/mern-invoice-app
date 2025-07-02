@@ -49,14 +49,17 @@ const Header = ({ onMenuClick }) => {
               </button>
             </div>
 
-            {/* Invoice Logo & Text */}
+            {/* InvoX Logo & Text */}
             <Link to="/" className="group flex items-center gap-2 text-white font-bold text-lg sm:text-xl lg:text-2xl tracking-tight transition-all duration-300 hover:scale-105">
               <div className="relative">
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:rotate-12 transition-transform duration-300" />
-                <div className="absolute -inset-1 bg-white/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-violet-300 via-fuchsia-300 to-purple-300 rounded-xl shadow-lg group-hover:rotate-12 transition-all duration-300 group-hover:shadow-xl">
+                  <span className="text-violet-900 font-extrabold text-sm sm:text-base">X</span>
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-violet-400/30 via-fuchsia-400/30 to-purple-400/30 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-fuchsia-300 animate-pulse" />
               </div>
-              <span className="hidden sm:inline bg-gradient-to-r from-white via-violet-100 to-fuchsia-100 bg-clip-text text-transparent drop-shadow-sm">
-                Invoice App
+              <span className="hidden sm:inline bg-gradient-to-r from-white via-violet-100 to-fuchsia-100 bg-clip-text text-transparent drop-shadow-sm font-extrabold tracking-wide">
+                Invo<span className="text-fuchsia-200">X</span>
               </span>
             </Link>
           </div>

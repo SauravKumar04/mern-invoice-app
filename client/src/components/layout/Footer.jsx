@@ -24,9 +24,11 @@ const Footer = () => {
             {/* Left side - Brand and copyright */}
             <div className="flex items-center gap-3 text-center md:text-left">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-white drop-shadow-lg animate-pulse" />
+                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-violet-300 via-fuchsia-300 to-purple-300 rounded-lg shadow-lg animate-pulse">
+                  <span className="text-violet-900 font-extrabold text-xs">X</span>
+                </div>
                 <span className="font-bold text-lg bg-gradient-to-r from-white via-violet-100 to-fuchsia-100 bg-clip-text text-transparent drop-shadow-sm">
-                  Invoice App
+                  Invo<span className="text-fuchsia-200">X</span>
                 </span>
               </div>
             </div>
@@ -71,7 +73,7 @@ const Footer = () => {
             <div className="flex items-center justify-center">
               <div className="flex items-center gap-2 text-xs text-violet-200/60">
                 <Sparkles className="w-3 h-3 animate-pulse" />
-                <span>Empowering businesses with beautiful invoices</span>
+                <span>Next-gen invoicing. Empowering businesses worldwide.</span>
                 <Sparkles className="w-3 h-3 animate-pulse animation-delay-500" />
               </div>
             </div>

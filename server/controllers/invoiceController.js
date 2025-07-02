@@ -316,7 +316,7 @@ const sendInvoiceEmail = async (req, res) => {
         });
 
         const mailOptions = {
-          from: `"${company?.name || "Invoice App"}" <${process.env.EMAIL_USER}>`,
+          from: `"${company?.name || "InvoX"}" <${process.env.EMAIL_USER}>`,
           to: invoice.clientEmail,
           subject: `Invoice #${invoice.invoiceNumber}`,
           html: `
@@ -356,7 +356,7 @@ const sendInvoiceEmail = async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"${company?.name || "Invoice App"}" <${process.env.EMAIL_USER}>`,
+      from: `"${company?.name || "InvoX"}" <${process.env.EMAIL_USER}>`,
       to: invoice.clientEmail,
       subject: `Invoice #${invoice.invoiceNumber}`,
       text: `Hi ${invoice.clientName},\n\nPlease find your invoice attached.`,

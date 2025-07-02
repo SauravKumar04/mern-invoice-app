@@ -11,7 +11,7 @@ const sendEmail = async (to, subject, text) => {
     });
 
     await transporter.sendMail({
-      from: `"Invoice App" <${process.env.EMAIL_USER}>`,
+      from: `"InvoX" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
