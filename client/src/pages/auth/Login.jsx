@@ -114,6 +114,7 @@ const Login = () => {
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
+                variant="light"
               />
             </div>
 
@@ -128,6 +129,7 @@ const Login = () => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
+                variant="light"
               />
             </div>
 
