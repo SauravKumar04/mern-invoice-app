@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import InvoicePDF from "./InvoicePDF";
+import TemplatePDFDownload from "./TemplatePDFDownload";
 import { deleteInvoice } from "../../api/invoices";
 import { 
   Eye, 
@@ -184,7 +184,11 @@ const InvoiceTable = ({ invoices, onDelete }) => {
                   
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <InvoicePDF invoiceId={invoice._id} />
+                      <TemplatePDFDownload 
+                        invoiceId={invoice._id}
+                        invoiceNumber={invoice.invoiceNumber}
+                        currentTemplate={invoice.template}
+                      />
                       
                       <Link
                         to={`/invoices/view/${invoice._id}`}
@@ -300,7 +304,11 @@ const InvoiceTable = ({ invoices, onDelete }) => {
 
                 {/* Actions */}
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                  <InvoicePDF invoiceId={invoice._id} />
+                  <TemplatePDFDownload 
+                    invoiceId={invoice._id}
+                    invoiceNumber={invoice.invoiceNumber}
+                    currentTemplate={invoice.template}
+                  />
                   
                   <Link
                     to={`/invoices/view/${invoice._id}`}

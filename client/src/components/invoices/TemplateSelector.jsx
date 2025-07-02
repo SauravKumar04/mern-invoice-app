@@ -11,7 +11,7 @@ import {
   Layout,
   Zap
 } from 'lucide-react';
-import axios from 'axios';
+import { getInvoiceTemplates } from '../../api/invoices';
 
 const TemplateSelector = ({ selectedTemplate, onTemplateChange, sx = {} }) => {
   const [templates, setTemplates] = useState([]);
@@ -56,11 +56,8 @@ const TemplateSelector = ({ selectedTemplate, onTemplateChange, sx = {} }) => {
 
   const fetchTemplates = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/invoices/templates', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTemplates(response.data);
+      const templatesData = await getInvoiceTemplates();
+      setTemplates(templatesData);
     } catch (err) {
       console.error('Error fetching templates:', err);
       setError('Failed to load templates');
