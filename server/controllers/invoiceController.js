@@ -8,6 +8,218 @@ const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const PDFDocument = require("pdfkit");
 
+// Create beautiful PDF using PDFKit as Puppeteer alternative
+const generatePDFWithPDFKit = async (invoice, company) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ 
+        size: 'A4',
+        margins: { top: 0, bottom: 50, left: 0, right: 0 }
+      });
+
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        const pdfData = Buffer.concat(buffers);
+        resolve(pdfData);
+      });
+
+      // Header with gradient effect (simulated with rectangles)
+      doc.rect(0, 0, 595, 120).fill('#667eea');
+      doc.rect(0, 0, 595, 120).fill('#764ba2', 0.7);
+
+      // InvoX Logo and Branding
+      doc.fontSize(32).fillColor('white').font('Helvetica-Bold');
+      doc.text('InvoX', 50, 40);
+      doc.fontSize(14).fillColor('white');
+      doc.text('Next-gen invoicing.', 50, 75);
+
+      // Invoice Title
+      doc.fontSize(36).fillColor('white').font('Helvetica-Bold');
+      doc.text('INVOICE', 400, 35);
+      doc.fontSize(16);
+      doc.text(`#${invoice.invoiceNumber}`, 400, 75);
+
+      // White background for content
+      doc.rect(0, 120, 595, 722).fill('white');
+
+      // Company and Client Info Cards
+      let yPos = 150;
+      
+      // From Section
+      doc.roundedRect(50, yPos, 220, 120, 10).stroke('#e2e8f0').fillAndStroke('#f8fafc', '#8b5cf6');
+      doc.rect(50, yPos, 4, 120).fill('#8b5cf6');
+      
+      doc.fontSize(12).fillColor('#4c1d95').font('Helvetica-Bold');
+      doc.text('FROM', 60, yPos + 15);
+      
+      doc.fontSize(14).fillColor('#1f2937').font('Helvetica-Bold');
+      doc.text(company?.name || 'Your Company', 60, yPos + 35);
+      
+      doc.fontSize(11).fillColor('#6b7280').font('Helvetica');
+      if (company?.address) doc.text(company.address, 60, yPos + 55);
+      if (company?.email) doc.text(`Email: ${company.email}`, 60, yPos + 70);
+      if (company?.phone) doc.text(`Phone: ${company.phone}`, 60, yPos + 85);
+
+      // Bill To Section
+      doc.roundedRect(325, yPos, 220, 120, 10).stroke('#e2e8f0').fillAndStroke('#f8fafc', '#8b5cf6');
+      doc.rect(325, yPos, 4, 120).fill('#8b5cf6');
+      
+      doc.fontSize(12).fillColor('#4c1d95').font('Helvetica-Bold');
+      doc.text('BILL TO', 335, yPos + 15);
+      
+      doc.fontSize(14).fillColor('#1f2937').font('Helvetica-Bold');
+      doc.text(invoice.clientName, 335, yPos + 35);
+      
+      doc.fontSize(11).fillColor('#6b7280').font('Helvetica');
+      doc.text(invoice.clientEmail, 335, yPos + 55);
+      if (invoice.clientAddress) doc.text(invoice.clientAddress, 335, yPos + 70);
+
+      // Invoice Details Cards
+      yPos = 300;
+      const cardWidth = 120;
+      const cardSpacing = 130;
+
+      // Issue Date Card
+      doc.roundedRect(50, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
+      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
+      doc.text('ISSUE DATE', 60, yPos + 10);
+      doc.fontSize(12).fillColor('#1f2937').font('Helvetica-Bold');
+      doc.text(new Date(invoice.issueDate).toLocaleDateString('en-US', { 
+        month: 'short', day: 'numeric', year: 'numeric' 
+      }), 60, yPos + 30);
+
+      // Due Date Card
+      doc.roundedRect(50 + cardSpacing, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
+      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
+      doc.text('DUE DATE', 60 + cardSpacing, yPos + 10);
+      doc.fontSize(12).fillColor('#1f2937').font('Helvetica-Bold');
+      doc.text(new Date(invoice.dueDate).toLocaleDateString('en-US', { 
+        month: 'short', day: 'numeric', year: 'numeric' 
+      }), 60 + cardSpacing, yPos + 30);
+
+      // Status Card
+      doc.roundedRect(50 + cardSpacing * 2, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
+      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
+      doc.text('STATUS', 60 + cardSpacing * 2, yPos + 10);
+      
+      const statusColor = invoice.status === 'Paid' ? '#059669' : 
+                         invoice.status === 'Sent' ? '#d97706' : '#6b7280';
+      doc.fontSize(12).fillColor(statusColor).font('Helvetica-Bold');
+      doc.text(invoice.status, 60 + cardSpacing * 2, yPos + 30);
+
+      // Amount Due Card
+      doc.roundedRect(50 + cardSpacing * 3, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
+      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
+      doc.text('AMOUNT DUE', 60 + cardSpacing * 3, yPos + 10);
+      doc.fontSize(14).fillColor('#8b5cf6').font('Helvetica-Bold');
+      doc.text(`$${invoice.total.toFixed(2)}`, 60 + cardSpacing * 3, yPos + 30);
+
+      // Items Table
+      yPos = 400;
+      
+      // Table Title
+      doc.fontSize(16).fillColor('#1f2937').font('Helvetica-Bold');
+      doc.text('Invoice Items', 50, yPos);
+      doc.rect(50, yPos + 25, 200, 2).fill('#8b5cf6');
+      
+      yPos += 45;
+
+      // Table Header
+      doc.rect(50, yPos, 495, 35).fill('#8b5cf6');
+      doc.fontSize(12).fillColor('white').font('Helvetica-Bold');
+      doc.text('DESCRIPTION', 60, yPos + 12);
+      doc.text('QTY', 320, yPos + 12);
+      doc.text('UNIT PRICE', 380, yPos + 12);
+      doc.text('AMOUNT', 480, yPos + 12);
+
+      yPos += 35;
+
+      // Table Rows
+      invoice.items.forEach((item, index) => {
+        const rowColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+        doc.rect(50, yPos, 495, 30).fill(rowColor);
+        
+        doc.fontSize(11).fillColor('#1f2937').font('Helvetica-Bold');
+        doc.text(item.name, 60, yPos + 10, { width: 200 });
+        
+        if (item.description) {
+          doc.fontSize(9).fillColor('#6b7280').font('Helvetica');
+          doc.text(item.description, 60, yPos + 22, { width: 200 });
+        }
+        
+        doc.fontSize(11).fillColor('#1f2937').font('Helvetica');
+        doc.text(item.quantity.toString(), 330, yPos + 10);
+        doc.text(`$${item.price.toFixed(2)}`, 390, yPos + 10);
+        doc.text(`$${(item.quantity * item.price).toFixed(2)}`, 490, yPos + 10);
+        
+        yPos += 30;
+      });
+
+      // Totals Section
+      yPos += 20;
+      const totalsX = 350;
+      const totalsWidth = 195;
+
+      doc.roundedRect(totalsX, yPos, totalsWidth, 120, 12).stroke('#e2e8f0').fill('#f8fafc');
+
+      const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
+      // Subtotal
+      doc.fontSize(12).fillColor('#4b5563').font('Helvetica');
+      doc.text('Subtotal', totalsX + 20, yPos + 20);
+      doc.text(`$${subtotal.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 20);
+
+      // Tax (if any)
+      if (invoice.tax > 0) {
+        doc.text('Tax', totalsX + 20, yPos + 40);
+        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 40);
+      }
+
+      // Discount (if any)
+      if (invoice.discount > 0) {
+        doc.text('Discount', totalsX + 20, yPos + 60);
+        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 60);
+      }
+
+      // Total
+      doc.rect(totalsX + 10, yPos + 80, totalsWidth - 20, 2).fill('#8b5cf6');
+      doc.fontSize(16).fillColor('#4c1d95').font('Helvetica-Bold');
+      doc.text('Total Amount', totalsX + 20, yPos + 90);
+      doc.text(`$${invoice.total.toFixed(2)}`, totalsX + totalsWidth - 100, yPos + 90);
+
+      // Notes (if any)
+      if (invoice.notes) {
+        yPos += 150;
+        doc.roundedRect(50, yPos, 495, 60, 8).stroke('#f59e0b').fill('#fefce8');
+        doc.rect(50, yPos, 6, 60).fill('#f59e0b');
+        
+        doc.fontSize(12).fillColor('#92400e').font('Helvetica-Bold');
+        doc.text('Additional Notes', 70, yPos + 15);
+        doc.fontSize(11).fillColor('#78350f').font('Helvetica');
+        doc.text(invoice.notes, 70, yPos + 35, { width: 400 });
+      }
+
+      // Footer
+      const footerY = 750;
+      doc.rect(0, footerY, 595, 92).fill('#1e1b4b');
+      
+      doc.fontSize(16).fillColor('white').font('Helvetica-Bold');
+      doc.text('Thank You for Your Business!', 50, footerY + 20, { align: 'center', width: 495 });
+      doc.fontSize(12).fillColor('white').font('Helvetica');
+      doc.text('We appreciate the opportunity to work with you.', 50, footerY + 45, { align: 'center', width: 495 });
+      
+      doc.fontSize(12).fillColor('white').font('Helvetica-Bold');
+      doc.text('Powered by InvoX', 50, footerY + 70, { align: 'center', width: 495 });
+
+      doc.end();
+
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 // Create Invoice
 const createInvoice = async (req, res) => {
   try {
@@ -254,218 +466,6 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-// Create beautiful PDF using PDFKit as Puppeteer alternative
-const generatePDFWithPDFKit = async (invoice, company) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ 
-        size: 'A4',
-        margins: { top: 0, bottom: 50, left: 0, right: 0 }
-      });
-
-      const buffers = [];
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => {
-        const pdfData = Buffer.concat(buffers);
-        resolve(pdfData);
-      });
-
-      // Header with gradient effect (simulated with rectangles)
-      doc.rect(0, 0, 595, 120).fill('#667eea');
-      doc.rect(0, 0, 595, 120).fill('#764ba2', 0.7);
-
-      // InvoX Logo and Branding
-      doc.fontSize(32).fillColor('white').font('Helvetica-Bold');
-      doc.text('InvoX', 50, 40);
-      doc.fontSize(14).fillColor('white');
-      doc.text('Next-gen invoicing.', 50, 75);
-
-      // Invoice Title
-      doc.fontSize(36).fillColor('white').font('Helvetica-Bold');
-      doc.text('INVOICE', 400, 35);
-      doc.fontSize(16);
-      doc.text(`#${invoice.invoiceNumber}`, 400, 75);
-
-      // White background for content
-      doc.rect(0, 120, 595, 722).fill('white');
-
-      // Company and Client Info Cards
-      let yPos = 150;
-      
-      // From Section
-      doc.roundedRect(50, yPos, 220, 120, 10).stroke('#e2e8f0').fillAndStroke('#f8fafc', '#8b5cf6');
-      doc.rect(50, yPos, 4, 120).fill('#8b5cf6');
-      
-      doc.fontSize(12).fillColor('#4c1d95').font('Helvetica-Bold');
-      doc.text('FROM', 60, yPos + 15);
-      
-      doc.fontSize(14).fillColor('#1f2937').font('Helvetica-Bold');
-      doc.text(company?.name || 'Your Company', 60, yPos + 35);
-      
-      doc.fontSize(11).fillColor('#6b7280').font('Helvetica');
-      if (company?.address) doc.text(company.address, 60, yPos + 55);
-      if (company?.email) doc.text(`Email: ${company.email}`, 60, yPos + 70);
-      if (company?.phone) doc.text(`Phone: ${company.phone}`, 60, yPos + 85);
-
-      // Bill To Section
-      doc.roundedRect(325, yPos, 220, 120, 10).stroke('#e2e8f0').fillAndStroke('#f8fafc', '#8b5cf6');
-      doc.rect(325, yPos, 4, 120).fill('#8b5cf6');
-      
-      doc.fontSize(12).fillColor('#4c1d95').font('Helvetica-Bold');
-      doc.text('BILL TO', 335, yPos + 15);
-      
-      doc.fontSize(14).fillColor('#1f2937').font('Helvetica-Bold');
-      doc.text(invoice.clientName, 335, yPos + 35);
-      
-      doc.fontSize(11).fillColor('#6b7280').font('Helvetica');
-      doc.text(invoice.clientEmail, 335, yPos + 55);
-      if (invoice.clientAddress) doc.text(invoice.clientAddress, 335, yPos + 70);
-
-      // Invoice Details Cards
-      yPos = 300;
-      const cardWidth = 120;
-      const cardSpacing = 130;
-
-      // Issue Date Card
-      doc.roundedRect(50, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
-      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
-      doc.text('ISSUE DATE', 60, yPos + 10);
-      doc.fontSize(12).fillColor('#1f2937').font('Helvetica-Bold');
-      doc.text(new Date(invoice.issueDate).toLocaleDateString('en-US', { 
-        month: 'short', day: 'numeric', year: 'numeric' 
-      }), 60, yPos + 30);
-
-      // Due Date Card
-      doc.roundedRect(50 + cardSpacing, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
-      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
-      doc.text('DUE DATE', 60 + cardSpacing, yPos + 10);
-      doc.fontSize(12).fillColor('#1f2937').font('Helvetica-Bold');
-      doc.text(new Date(invoice.dueDate).toLocaleDateString('en-US', { 
-        month: 'short', day: 'numeric', year: 'numeric' 
-      }), 60 + cardSpacing, yPos + 30);
-
-      // Status Card
-      doc.roundedRect(50 + cardSpacing * 2, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
-      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
-      doc.text('STATUS', 60 + cardSpacing * 2, yPos + 10);
-      
-      const statusColor = invoice.status === 'Paid' ? '#059669' : 
-                         invoice.status === 'Sent' ? '#d97706' : '#6b7280';
-      doc.fontSize(12).fillColor(statusColor).font('Helvetica-Bold');
-      doc.text(invoice.status, 60 + cardSpacing * 2, yPos + 30);
-
-      // Amount Due Card
-      doc.roundedRect(50 + cardSpacing * 3, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
-      doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
-      doc.text('AMOUNT DUE', 60 + cardSpacing * 3, yPos + 10);
-      doc.fontSize(14).fillColor('#8b5cf6').font('Helvetica-Bold');
-      doc.text(`$${invoice.total.toFixed(2)}`, 60 + cardSpacing * 3, yPos + 30);
-
-      // Items Table
-      yPos = 400;
-      
-      // Table Title
-      doc.fontSize(16).fillColor('#1f2937').font('Helvetica-Bold');
-      doc.text('Invoice Items', 50, yPos);
-      doc.rect(50, yPos + 25, 200, 2).fill('#8b5cf6');
-      
-      yPos += 45;
-
-      // Table Header
-      doc.rect(50, yPos, 495, 35).fill('#8b5cf6');
-      doc.fontSize(12).fillColor('white').font('Helvetica-Bold');
-      doc.text('DESCRIPTION', 60, yPos + 12);
-      doc.text('QTY', 320, yPos + 12);
-      doc.text('UNIT PRICE', 380, yPos + 12);
-      doc.text('AMOUNT', 480, yPos + 12);
-
-      yPos += 35;
-
-      // Table Rows
-      invoice.items.forEach((item, index) => {
-        const rowColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
-        doc.rect(50, yPos, 495, 30).fill(rowColor);
-        
-        doc.fontSize(11).fillColor('#1f2937').font('Helvetica-Bold');
-        doc.text(item.name, 60, yPos + 10, { width: 200 });
-        
-        if (item.description) {
-          doc.fontSize(9).fillColor('#6b7280').font('Helvetica');
-          doc.text(item.description, 60, yPos + 22, { width: 200 });
-        }
-        
-        doc.fontSize(11).fillColor('#1f2937').font('Helvetica');
-        doc.text(item.quantity.toString(), 330, yPos + 10);
-        doc.text(`$${item.price.toFixed(2)}`, 390, yPos + 10);
-        doc.text(`$${(item.quantity * item.price).toFixed(2)}`, 490, yPos + 10);
-        
-        yPos += 30;
-      });
-
-      // Totals Section
-      yPos += 20;
-      const totalsX = 350;
-      const totalsWidth = 195;
-
-      doc.roundedRect(totalsX, yPos, totalsWidth, 120, 12).stroke('#e2e8f0').fill('#f8fafc');
-
-      const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-
-      // Subtotal
-      doc.fontSize(12).fillColor('#4b5563').font('Helvetica');
-      doc.text('Subtotal', totalsX + 20, yPos + 20);
-      doc.text(`$${subtotal.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 20);
-
-      // Tax (if any)
-      if (invoice.tax > 0) {
-        doc.text('Tax', totalsX + 20, yPos + 40);
-        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 40);
-      }
-
-      // Discount (if any)
-      if (invoice.discount > 0) {
-        doc.text('Discount', totalsX + 20, yPos + 60);
-        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 80, yPos + 60);
-      }
-
-      // Total
-      doc.rect(totalsX + 10, yPos + 80, totalsWidth - 20, 2).fill('#8b5cf6');
-      doc.fontSize(16).fillColor('#4c1d95').font('Helvetica-Bold');
-      doc.text('Total Amount', totalsX + 20, yPos + 90);
-      doc.text(`$${invoice.total.toFixed(2)}`, totalsX + totalsWidth - 100, yPos + 90);
-
-      // Notes (if any)
-      if (invoice.notes) {
-        yPos += 150;
-        doc.roundedRect(50, yPos, 495, 60, 8).stroke('#f59e0b').fill('#fefce8');
-        doc.rect(50, yPos, 6, 60).fill('#f59e0b');
-        
-        doc.fontSize(12).fillColor('#92400e').font('Helvetica-Bold');
-        doc.text('Additional Notes', 70, yPos + 15);
-        doc.fontSize(11).fillColor('#78350f').font('Helvetica');
-        doc.text(invoice.notes, 70, yPos + 35, { width: 400 });
-      }
-
-      // Footer
-      const footerY = 750;
-      doc.rect(0, footerY, 595, 92).fill('#1e1b4b');
-      
-      doc.fontSize(16).fillColor('white').font('Helvetica-Bold');
-      doc.text('Thank You for Your Business!', 50, footerY + 20, { align: 'center', width: 495 });
-      doc.fontSize(12).fillColor('white').font('Helvetica');
-      doc.text('We appreciate the opportunity to work with you.', 50, footerY + 45, { align: 'center', width: 495 });
-      
-      doc.fontSize(12).fillColor('white').font('Helvetica-Bold');
-      doc.text('Powered by InvoX', 50, footerY + 70, { align: 'center', width: 495 });
-
-      doc.end();
-
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 const sendInvoiceEmail = async (req, res) => {
   try {
     const invoice = await Invoice.findOne({
@@ -644,7 +644,7 @@ const sendInvoiceEmail = async (req, res) => {
 
               </div>
             `,
-          });
+          };
 
           await transporter.sendMail(mailOptions);
           return res.json({ 
@@ -734,9 +734,9 @@ const sendInvoiceEmail = async (req, res) => {
           filename: `InvoX-Invoice-${invoice.invoiceNumber}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf'
-                 },
-       ],
-     };
+        }
+      ]
+    };
 
     await transporter.sendMail(mailOptions);
 
