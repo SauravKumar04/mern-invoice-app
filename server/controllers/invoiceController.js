@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const htmlPdf = require('html-pdf-node');
 const Invoice = require("../models/Invoice");
 const mongoose = require("mongoose");
 const Company = require("../models/Company");
@@ -383,42 +384,64 @@ const generateInvoicePdfHTML = async (req, res) => {
       `../templates/${template}.ejs`
     );
 
+    console.log(`🎯 Generating PDF for invoice ${invoice.invoiceNumber} with template ${template}`);
+
     const html = await ejs.renderFile(templatePath, {
       invoice,
       company: company ? company.toObject() : {},
     });
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-        "--disable-gpu"
-      ],
-    });
-    const page = await browser.newPage();
+    console.log('✅ Template rendered successfully, generating PDF...');
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    // Use html-pdf-node for more reliable PDF generation
+    const options = { 
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20px',
+        bottom: '20px',
+        left: '20px',
+        right: '20px'
+      }
+    };
 
-    const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+    const file = { content: html };
+    
+    try {
+      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      console.log('✅ PDF generated successfully with html-pdf-node');
 
-    await browser.close();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=invoice-${invoice.invoiceNumber}-${template}.pdf`
+      );
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`
-    );
-
-    res.send(pdfBuffer);
+      res.send(pdfBuffer);
+    } catch (htmlPdfError) {
+      console.error("❌ html-pdf-node failed:", htmlPdfError.message);
+      
+      // Fallback to PDFKit
+      console.log('🔄 Falling back to PDFKit...');
+      try {
+        const pdfBuffer = await generatePDFWithPDFKit(invoice, company);
+        console.log('✅ PDF generated successfully with PDFKit fallback');
+        
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=invoice-${invoice.invoiceNumber}-fallback.pdf`
+        );
+        
+        res.send(pdfBuffer);
+      } catch (pdfkitError) {
+        console.error("❌ PDFKit fallback also failed:", pdfkitError.message);
+        res.status(500).json({ message: "PDF generation failed with all methods" });
+      }
+    }
   } catch (err) {
-    console.error("Puppeteer PDF Error:", err);
-    res.status(500).json({ message: "PDF generation failed" });
+    console.error("❌ PDF Generation Error:", err);
+    res.status(500).json({ message: "PDF generation failed", error: err.message });
   }
 };
 
