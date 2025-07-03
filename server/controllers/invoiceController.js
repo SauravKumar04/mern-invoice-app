@@ -549,7 +549,7 @@ const sendInvoiceEmail = async (req, res) => {
     const invoice = await Invoice.findOne({
       _id: req.params.id,
       user: req.user.userId,
-    });
+    }).lean(); // Use .lean() to get plain JavaScript object
 
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
@@ -557,7 +557,8 @@ const sendInvoiceEmail = async (req, res) => {
 
     console.log(`📧 Sending email for invoice: ${invoice.invoiceNumber}`);
     console.log(`📋 Invoice template: ${invoice.template}`);
-    console.log(`💼 Full invoice object keys:`, Object.keys(invoice.toObject ? invoice.toObject() : invoice));
+    console.log(`� Invoice template type: ${typeof invoice.template}`);
+    console.log(`� Full invoice object:`, JSON.stringify(invoice.toObject ? invoice.toObject() : invoice, null, 2));
 
     const company = await Company.findOne({ user: req.user.userId });
 
@@ -831,7 +832,7 @@ const sendInvoiceEmail = async (req, res) => {
       `,
       attachments: [
         {
-          filename: `InvoX-Invoice-${invoice.invoiceNumber}.pdf`,
+          filename: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template || 'default'}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf'
         }
@@ -843,7 +844,8 @@ const sendInvoiceEmail = async (req, res) => {
     res.json({ 
       message: `Invoice sent successfully via email with PDF attachment`,
       method: pdfMethod,
-      attachment: `InvoX-Invoice-${invoice.invoiceNumber}.pdf`
+      template: invoice.template || 'default',
+      attachment: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template || 'default'}.pdf`
     });
 
   } catch (error) {
