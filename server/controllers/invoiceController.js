@@ -639,7 +639,7 @@ const sendInvoiceEmail = async (req, res) => {
           console.log("📧 Final fallback: Sending beautiful HTML email without PDF attachment...");
           try {
             // Enhanced transporter configuration for better Gmail compatibility
-            const transporter = nodemailer.createTransporter({
+            const transporter = nodemailer.createTransport({
               service: "gmail",
               host: "smtp.gmail.com",
               port: 587,
@@ -824,7 +824,7 @@ const sendInvoiceEmail = async (req, res) => {
     console.log("📧 Preparing to send email with PDF attachment...");
     
     // Enhanced transporter configuration for better Gmail compatibility
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,

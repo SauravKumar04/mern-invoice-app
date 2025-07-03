@@ -35,7 +35,7 @@ router.post("/test-email", protect, async (req, res) => {
     console.log(`📧 Using EMAIL_USER: ${process.env.EMAIL_USER}`);
     console.log(`📧 EMAIL_PASS configured: ${!!process.env.EMAIL_PASS}`);
     
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
