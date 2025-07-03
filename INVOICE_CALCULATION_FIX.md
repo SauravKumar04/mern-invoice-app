@@ -117,4 +117,28 @@ const templatePath = path.join(__dirname, `../templates/${template}.ejs`);
 - **PDFKit fallback generation** - Fixed percentage calculations
 - **HTML email display** - Fixed percentage calculations
 
-The invoice download functionality should now display correct percentage-based tax and discount calculations instead of treating them as absolute values.
+## Email Template Issue Fixed
+**Problem**: Email PDFs were always using the default `invoiceTemplate.ejs` regardless of the invoice's assigned template.
+
+**Solution**: Added proper template selection logic in `sendInvoiceEmail` function with enhanced logging and fallback handling.
+
+## Existing Invoice Template Fix
+**Problem**: Existing invoices in the database might not have the `template` field if they were created before this feature was added.
+
+**Solution**: Added a utility function `fixInvoicesWithoutTemplate` that can update all existing invoices to have the default template.
+
+### To Fix Existing Invoices:
+Make a POST request to: `/api/invoices/fix-templates`
+
+This will:
+1. Find all invoices without template field
+2. Set them to use 'invoiceTemplate' as default
+3. Return count of fixed invoices
+
+### Added Enhanced Debugging:
+The system now logs:
+- Invoice template field value and type
+- Template selection process
+- Fallback actions when template is missing/invalid
+
+The invoice download functionality should now display correct percentage-based tax and discount calculations instead of treating them as absolute values, AND use the correct template for email PDFs.

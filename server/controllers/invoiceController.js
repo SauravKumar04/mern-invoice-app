@@ -555,6 +555,10 @@ const sendInvoiceEmail = async (req, res) => {
       return res.status(404).json({ message: "Invoice not found" });
     }
 
+    console.log(`📧 Sending email for invoice: ${invoice.invoiceNumber}`);
+    console.log(`📋 Invoice template: ${invoice.template}`);
+    console.log(`💼 Full invoice object keys:`, Object.keys(invoice.toObject ? invoice.toObject() : invoice));
+
     const company = await Company.findOne({ user: req.user.userId });
 
     let pdfBuffer;
@@ -563,14 +567,20 @@ const sendInvoiceEmail = async (req, res) => {
     // First try: Puppeteer PDF generation
     try {
       console.log("🎯 Attempting PDF generation with Puppeteer...");
+      console.log(`📝 Invoice template field: ${invoice.template}`);
+      console.log(`📝 Invoice template type: ${typeof invoice.template}`);
       
       // Use the invoice's template or default to invoiceTemplate
       let template = invoice.template || 'invoiceTemplate';
       const allowedTemplates = ['invoiceTemplate', 'modernTemplate', 'creativeTemplate', 'minimalTemplate'];
       
-      if (!allowedTemplates.includes(template)) {
+      // Handle null, undefined, or invalid templates
+      if (!template || !allowedTemplates.includes(template)) {
+        console.log(`⚠️ Invalid or missing template "${template}", falling back to invoiceTemplate`);
         template = 'invoiceTemplate'; // Fallback to default
       }
+      
+      console.log(`✅ Using template: ${template}`);
       
       const templatePath = path.join(
         __dirname,
@@ -879,6 +889,57 @@ const getInvoiceTemplates = async (req, res) => {
   }
 };
 
+// Utility function to fix existing invoices without template field
+const fixInvoicesWithoutTemplate = async (req, res) => {
+  try {
+    console.log("🔧 Starting to fix invoices without template field...");
+    
+    // Find invoices without template field or with null/undefined template
+    const invoicesWithoutTemplate = await Invoice.find({
+      $or: [
+        { template: { $exists: false } },
+        { template: null },
+        { template: undefined },
+        { template: "" }
+      ]
+    });
+    
+    console.log(`Found ${invoicesWithoutTemplate.length} invoices without template field`);
+    
+    if (invoicesWithoutTemplate.length === 0) {
+      return res.json({ 
+        message: "All invoices already have template field set",
+        fixed: 0 
+      });
+    }
+    
+    // Update all invoices without template to use default template
+    const updateResult = await Invoice.updateMany(
+      {
+        $or: [
+          { template: { $exists: false } },
+          { template: null },
+          { template: undefined },
+          { template: "" }
+        ]
+      },
+      { $set: { template: 'invoiceTemplate' } }
+    );
+    
+    console.log(`✅ Fixed ${updateResult.modifiedCount} invoices`);
+    
+    res.json({ 
+      message: `Successfully fixed ${updateResult.modifiedCount} invoices`,
+      fixed: updateResult.modifiedCount,
+      invoicesFound: invoicesWithoutTemplate.length
+    });
+    
+  } catch (error) {
+    console.error("Fix Invoices Error:", error);
+    res.status(500).json({ message: "Failed to fix invoices", error: error.message });
+  }
+};
+
 module.exports = {
   createInvoice,
   getInvoices,
@@ -890,4 +951,5 @@ module.exports = {
   getDashboardStats,
   sendInvoiceEmail,
   getInvoiceTemplates,
+  fixInvoicesWithoutTemplate,
 };

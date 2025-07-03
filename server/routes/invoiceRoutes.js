@@ -11,8 +11,9 @@ const {
   updateInvoiceStatus,
   getDashboardStats,
   getInvoiceTemplates,
+  sendInvoiceEmail,
+  fixInvoicesWithoutTemplate,
 } = require("../controllers/invoiceController");
-const { sendInvoiceEmail } = require("../controllers/invoiceController");
 
 // Create a new invoice
 router.post("/", protect, createInvoice);
@@ -25,6 +26,9 @@ router.get("/dashboard/stats", protect, getDashboardStats);
 
 // Get available invoice templates (MUST come before `/:id`)
 router.get("/templates", protect, getInvoiceTemplates);
+
+// Fix invoices without template field (MUST come before `/:id`)
+router.post("/fix-templates", protect, fixInvoicesWithoutTemplate);
 
 // Generate PDF for a specific invoice (MUST come before `/:id`)
 router.get("/:id/pdf-html", protect, generateInvoicePdfHTML);
