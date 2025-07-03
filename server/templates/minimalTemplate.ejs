@@ -445,7 +445,13 @@
         </div>
         <div class="detail-card">
           <div class="detail-label">Amount Due</div>
-          <div class="detail-value">$<%= invoice.total.toFixed(2) %></div>
+          <% 
+            const subtotalAmountDue = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            const taxAmountDue = (subtotalAmountDue * invoice.tax) / 100;
+            const discountAmountDue = (subtotalAmountDue * invoice.discount) / 100;
+            const calculatedTotalAmountDue = subtotalAmountDue + taxAmountDue - discountAmountDue;
+          %>
+          <div class="detail-value">$<%= calculatedTotalAmountDue.toFixed(2) %></div>
         </div>
       </div>
 
@@ -478,6 +484,9 @@
           <div class="totals-card">
             <% 
               const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+              const taxAmount = (subtotal * invoice.tax) / 100;
+              const discountAmount = (subtotal * invoice.discount) / 100;
+              const calculatedTotal = subtotal + taxAmount - discountAmount;
             %>
             <div class="total-row">
               <span class="total-label">Subtotal</span>
@@ -485,19 +494,19 @@
             </div>
             <% if (invoice.tax > 0) { %>
               <div class="total-row">
-                <span class="total-label">Tax</span>
-                <span class="total-value">$<%= invoice.tax.toFixed(2) %></span>
+                <span class="total-label">Tax (<%= invoice.tax %>%)</span>
+                <span class="total-value">$<%= taxAmount.toFixed(2) %></span>
               </div>
             <% } %>
             <% if (invoice.discount > 0) { %>
               <div class="total-row">
-                <span class="total-label">Discount</span>
-                <span class="total-value">-$<%= invoice.discount.toFixed(2) %></span>
+                <span class="total-label">Discount (<%= invoice.discount %>%)</span>
+                <span class="total-value">-$<%= discountAmount.toFixed(2) %></span>
               </div>
             <% } %>
             <div class="total-row final-total">
               <span class="total-label">Total</span>
-              <span class="total-value">$<%= invoice.total.toFixed(2) %></span>
+              <span class="total-value">$<%= calculatedTotal.toFixed(2) %></span>
             </div>
           </div>
         </div>
