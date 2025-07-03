@@ -8,7 +8,7 @@ const sendEmail = async (to, subject, text, html = null) => {
     }
 
     // Enhanced transporter configuration for better Gmail compatibility
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
