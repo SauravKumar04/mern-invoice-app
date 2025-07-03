@@ -531,6 +531,15 @@ const sendInvoiceEmail = async (req, res) => {
 
     const company = await Company.findOne({ user: req.user.userId });
 
+    // Check if email configuration is available
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error("❌ Email configuration missing: EMAIL_USER or EMAIL_PASS not set");
+      return res.status(500).json({ 
+        message: "Email configuration missing. Please set EMAIL_USER and EMAIL_PASS environment variables.",
+        error: "EMAIL_CONFIG_MISSING"
+      });
+    }
+
     let pdfBuffer;
     let pdfMethod = '';
 
@@ -629,13 +638,26 @@ const sendInvoiceEmail = async (req, res) => {
           // Final fallback: Send beautiful HTML email without PDF
           console.log("📧 Final fallback: Sending beautiful HTML email without PDF attachment...");
           try {
+            // Enhanced transporter configuration for better Gmail compatibility
             const transporter = nodemailer.createTransporter({
               service: "gmail",
+              host: "smtp.gmail.com",
+              port: 587,
+              secure: false, // true for 465, false for other ports
               auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
               },
+              tls: {
+                rejectUnauthorized: false // Accept self-signed certificates
+              },
+              debug: process.env.NODE_ENV === 'development', // Enable debug output
+              logger: process.env.NODE_ENV === 'development' // Log information in console
             });
+
+            // Verify transporter configuration
+            await transporter.verify();
+            console.log("✅ Email transporter configuration verified");
 
             // Calculate correct amounts for email display
             const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -753,18 +775,45 @@ const sendInvoiceEmail = async (req, res) => {
               `,
             };
 
+            console.log(`📧 Sending email to ${invoice.clientEmail}...`);
             await transporter.sendMail(mailOptions);
+            console.log("✅ Email sent successfully!");
+            
             return res.json({ 
               message: "Invoice sent via beautiful email notification (PDF generation temporarily unavailable)",
               method: "HTML Email Fallback",
-              template: invoice.template
+              template: invoice.template,
+              recipient: invoice.clientEmail
             });
             
           } catch (emailError) {
             console.error("❌ Final fallback email also failed:", emailError);
+            
+            // Provide detailed error information
+            let errorMessage = "Failed to send invoice email";
+            let errorCode = "EMAIL_SEND_FAILED";
+            
+            if (emailError.code === 'EAUTH' || emailError.responseCode === 535) {
+              errorMessage = "Email authentication failed. Please check your Gmail App Password.";
+              errorCode = "EMAIL_AUTH_FAILED";
+            } else if (emailError.code === 'ENOTFOUND' || emailError.code === 'ECONNREFUSED') {
+              errorMessage = "Network error. Unable to connect to Gmail servers.";
+              errorCode = "EMAIL_NETWORK_ERROR";
+            } else if (emailError.responseCode === 550) {
+              errorMessage = "Invalid recipient email address.";
+              errorCode = "EMAIL_INVALID_RECIPIENT";
+            }
+            
             return res.status(500).json({ 
-              message: "Failed to send invoice email",
-              error: process.env.NODE_ENV === 'development' ? emailError.message : 'Email sending error'
+              message: errorMessage,
+              error: errorCode,
+              details: process.env.NODE_ENV === 'development' ? emailError.message : undefined,
+              troubleshooting: {
+                gmail_setup: "Ensure you're using a Gmail App Password, not your regular password",
+                two_factor: "Enable 2-Factor Authentication on your Google account",
+                app_password: "Generate an App Password in Google Account settings",
+                security: "Allow less secure apps if using regular password (not recommended)"
+              }
             });
           }
         }
@@ -772,13 +821,33 @@ const sendInvoiceEmail = async (req, res) => {
     }
 
     // Send email with PDF attachment
+    console.log("📧 Preparing to send email with PDF attachment...");
+    
+    // Enhanced transporter configuration for better Gmail compatibility
     const transporter = nodemailer.createTransporter({
       service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false // Accept self-signed certificates
+      },
+      debug: process.env.NODE_ENV === 'development', // Enable debug output
+      logger: process.env.NODE_ENV === 'development' // Log information in console
     });
+
+    // Verify transporter configuration
+    try {
+      await transporter.verify();
+      console.log("✅ Email transporter configuration verified");
+    } catch (verifyError) {
+      console.error("❌ Email transporter verification failed:", verifyError);
+      throw new Error(`Email configuration error: ${verifyError.message}`);
+    }
 
     // Calculate correct amounts for email display
     const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -857,18 +926,47 @@ const sendInvoiceEmail = async (req, res) => {
       ]
     };
 
+    console.log(`📧 Sending email to ${invoice.clientEmail} with PDF attachment...`);
     await transporter.sendMail(mailOptions);
+    console.log("✅ Email with PDF attachment sent successfully!");
 
     res.json({ 
       message: `Invoice sent successfully via email with ${invoice.template.replace('Template', '').toUpperCase()} style PDF attachment`,
       method: pdfMethod,
       template: invoice.template,
-      attachment: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template.replace('Template', '').toUpperCase()}.pdf`
+      attachment: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template.replace('Template', '').toUpperCase()}.pdf`,
+      recipient: invoice.clientEmail
     });
 
   } catch (error) {
     console.error("Send Email Error:", error);
-    res.status(500).json({ message: "Failed to send invoice email" });
+    
+    // Provide detailed error information
+    let errorMessage = "Failed to send invoice email";
+    let errorCode = "EMAIL_SEND_FAILED";
+    
+    if (error.code === 'EAUTH' || error.responseCode === 535) {
+      errorMessage = "Email authentication failed. Please check your Gmail App Password.";
+      errorCode = "EMAIL_AUTH_FAILED";
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      errorMessage = "Network error. Unable to connect to Gmail servers.";
+      errorCode = "EMAIL_NETWORK_ERROR";
+    } else if (error.responseCode === 550) {
+      errorMessage = "Invalid recipient email address.";
+      errorCode = "EMAIL_INVALID_RECIPIENT";
+    }
+    
+    res.status(500).json({ 
+      message: errorMessage,
+      error: errorCode,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      troubleshooting: {
+        gmail_setup: "Ensure you're using a Gmail App Password, not your regular password",
+        two_factor: "Enable 2-Factor Authentication on your Google account",
+        app_password: "Generate an App Password in Google Account settings",
+        security: "Check that your Gmail account allows less secure apps or use App Passwords"
+      }
+    });
   }
 };
 
