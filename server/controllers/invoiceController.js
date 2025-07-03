@@ -563,9 +563,18 @@ const sendInvoiceEmail = async (req, res) => {
     // First try: Puppeteer PDF generation
     try {
       console.log("🎯 Attempting PDF generation with Puppeteer...");
+      
+      // Use the invoice's template or default to invoiceTemplate
+      let template = invoice.template || 'invoiceTemplate';
+      const allowedTemplates = ['invoiceTemplate', 'modernTemplate', 'creativeTemplate', 'minimalTemplate'];
+      
+      if (!allowedTemplates.includes(template)) {
+        template = 'invoiceTemplate'; // Fallback to default
+      }
+      
       const templatePath = path.join(
         __dirname,
-        "../templates/invoiceTemplate.ejs"
+        `../templates/${template}.ejs`
       );
 
       const html = await ejs.renderFile(templatePath, {

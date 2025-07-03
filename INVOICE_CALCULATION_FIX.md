@@ -74,6 +74,24 @@ if (updateData.items || updateData.tax !== undefined || updateData.discount !== 
 ### 5. Fixed Email Templates
 Updated the HTML email templates to use percentage-based calculations for tax and discount display.
 
+### 6. Fixed Email PDF Generation Template Selection
+The `sendInvoiceEmail` function was hardcoded to use only `invoiceTemplate.ejs` for Puppeteer PDF generation. Now it correctly uses the invoice's assigned template:
+
+**Before:**
+```javascript
+const templatePath = path.join(__dirname, "../templates/invoiceTemplate.ejs");
+```
+
+**After:**
+```javascript
+let template = invoice.template || 'invoiceTemplate';
+const allowedTemplates = ['invoiceTemplate', 'modernTemplate', 'creativeTemplate', 'minimalTemplate'];
+if (!allowedTemplates.includes(template)) {
+  template = 'invoiceTemplate'; // Fallback to default
+}
+const templatePath = path.join(__dirname, `../templates/${template}.ejs`);
+```
+
 ## Expected Behavior Now
 - **Tax Input**: When user enters "10" for tax, it means 10% of subtotal
 - **Discount Input**: When user enters "5" for discount, it means 5% of subtotal
@@ -87,10 +105,16 @@ Updated the HTML email templates to use percentage-based calculations for tax an
 - **Total**: $500.00 + $50.00 - $25.00 = $525.00
 
 ## Files Modified
-1. `server/controllers/invoiceController.js` - Main calculation logic
+1. `server/controllers/invoiceController.js` - Main calculation logic and email PDF template selection
 2. `server/templates/modernTemplate.ejs` - Template display
 3. `server/templates/minimalTemplate.ejs` - Template display
 4. `server/templates/invoiceTemplate.ejs` - Template display
 5. `server/templates/creativeTemplate.ejs` - Template display
+
+## PDF Generation Methods Fixed
+- **Puppeteer PDF generation** (for email attachments) - Now uses correct template
+- **html-pdf-node generation** (for direct downloads) - Uses fixed EJS templates
+- **PDFKit fallback generation** - Fixed percentage calculations
+- **HTML email display** - Fixed percentage calculations
 
 The invoice download functionality should now display correct percentage-based tax and discount calculations instead of treating them as absolute values.
