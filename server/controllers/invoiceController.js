@@ -171,17 +171,19 @@ const generatePDFWithPDFKit = async (invoice, company) => {
       doc.text('Subtotal', totalsX + 20, yPos + 20);
       doc.text(`$${subtotal.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 20);
 
-      // Tax (if any)
-      if (invoice.tax > 0) {
-        doc.text('Tax', totalsX + 20, yPos + 40);
-        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 40);
-      }
+        // Tax (if any)
+  if (invoice.tax > 0) {
+    const taxAmount = subtotal * (invoice.tax / 100);
+    doc.text(`Tax (${invoice.tax}%)`, totalsX + 20, yPos + 40);
+    doc.text(`$${taxAmount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 40);
+  }
 
-      // Discount (if any)
-      if (invoice.discount > 0) {
-        doc.text('Discount', totalsX + 20, yPos + 60);
-        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 60);
-      }
+  // Discount (if any)
+  if (invoice.discount > 0) {
+    const discountAmount = subtotal * (invoice.discount / 100);
+    doc.text(`Discount (${invoice.discount}%)`, totalsX + 20, yPos + 60);
+    doc.text(`-$${discountAmount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 60);
+  }
 
       // Total
       doc.rect(totalsX + 10, yPos + 80, totalsWidth - 20, 2).fill('#8b5cf6');
@@ -251,7 +253,10 @@ const createInvoice = async (req, res) => {
       0
     );
 
-    const total = subTotal + Number(tax) - Number(discount);
+    // Calculate tax and discount as percentages of subtotal
+    const taxAmount = subTotal * (Number(tax) / 100);
+    const discountAmount = subTotal * (Number(discount) / 100);
+    const total = subTotal + taxAmount - discountAmount;
 
     const invoice = new Invoice({
       user: req.user.userId,
@@ -260,8 +265,8 @@ const createInvoice = async (req, res) => {
       clientEmail,
       clientAddress,
       items: parsedItems,
-      tax: Number(tax),
-      discount: Number(discount),
+      tax: Number(tax), // Store as percentage
+      discount: Number(discount), // Store as percentage
       total,
       issueDate,
       dueDate,
@@ -326,9 +331,39 @@ const getInvoiceById = async (req, res) => {
 
 const updateInvoice = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // If items, tax, or discount are being updated, recalculate the total
+    if (updateData.items || updateData.tax !== undefined || updateData.discount !== undefined) {
+      // Get the current invoice to get existing values if not provided in update
+      const currentInvoice = await Invoice.findOne({
+        _id: req.params.id,
+        user: req.user.userId,
+      });
+      
+      if (!currentInvoice) return res.status(404).json({ message: "Invoice not found" });
+      
+      const items = updateData.items || currentInvoice.items;
+      const tax = updateData.tax !== undefined ? updateData.tax : currentInvoice.tax;
+      const discount = updateData.discount !== undefined ? updateData.discount : currentInvoice.discount;
+      
+      // Calculate subtotal from items
+      const subTotal = items.reduce(
+        (sum, item) => sum + (item.quantity * item.price),
+        0
+      );
+      
+      // Calculate tax and discount as percentages of subtotal
+      const taxAmount = subTotal * (Number(tax) / 100);
+      const discountAmount = subTotal * (Number(discount) / 100);
+      const total = subTotal + taxAmount - discountAmount;
+      
+      updateData.total = total;
+    }
+
     const updated = await Invoice.findOneAndUpdate(
       { _id: req.params.id, user: req.user.userId },
-      req.body,
+      updateData,
       { new: true }
     );
 
@@ -652,8 +687,8 @@ const sendInvoiceEmail = async (req, res) => {
 
                   <!-- Totals -->
                   <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 25px; border-radius: 16px; margin: 30px 0; border: 2px solid #e2e8f0;">
-                    ${invoice.tax > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Tax:</span><span style="color: #1f2937; font-weight: 600;">$${invoice.tax.toFixed(2)}</span></div>` : ''}
-                    ${invoice.discount > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Discount:</span><span style="color: #1f2937; font-weight: 600;">-$${invoice.discount.toFixed(2)}</span></div>` : ''}
+                    ${invoice.tax > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Tax (${invoice.tax}%):</span><span style="color: #1f2937; font-weight: 600;">$${(invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) * (invoice.tax / 100)).toFixed(2)}</span></div>` : ''}
+                    ${invoice.discount > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Discount (${invoice.discount}%):</span><span style="color: #1f2937; font-weight: 600;">-$${(invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) * (invoice.discount / 100)).toFixed(2)}</span></div>` : ''}
                     <div style="border-top: 3px solid #8b5cf6; padding-top: 15px; margin-top: 15px;">
                       <div style="display: flex; justify-content: space-between;">
                         <span style="font-size: 20px; font-weight: 700; color: #4c1d95;">Total Amount:</span>

@@ -543,15 +543,17 @@
             <span class="total-value">$<%= subtotal.toFixed(2) %></span>
           </div>
           <% if (invoice.tax > 0) { %>
+            <% const taxAmount = subtotal * (invoice.tax / 100); %>
             <div class="total-row">
-              <span class="total-label">Tax</span>
-              <span class="total-value">$<%= invoice.tax.toFixed(2) %></span>
+              <span class="total-label">Tax (<%= invoice.tax %>%)</span>
+              <span class="total-value">$<%= taxAmount.toFixed(2) %></span>
             </div>
           <% } %>
           <% if (invoice.discount > 0) { %>
+            <% const discountAmount = subtotal * (invoice.discount / 100); %>
             <div class="total-row">
-              <span class="total-label">Discount</span>
-              <span class="total-value">-$<%= invoice.discount.toFixed(2) %></span>
+              <span class="total-label">Discount (<%= invoice.discount %>%)</span>
+              <span class="total-value">-$<%= discountAmount.toFixed(2) %></span>
             </div>
           <% } %>
           <div class="total-row final-total">
