@@ -109,12 +109,18 @@ const generatePDFWithPDFKit = async (invoice, company) => {
       doc.fontSize(12).fillColor(statusColor).font('Helvetica-Bold');
       doc.text(invoice.status, 60 + cardSpacing * 2, yPos + 30);
 
+      // Calculate correct amounts using percentage-based tax and discount
+      const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+      const taxAmount = (subtotal * invoice.tax) / 100;
+      const discountAmount = (subtotal * invoice.discount) / 100;
+      const calculatedTotal = subtotal + taxAmount - discountAmount;
+
       // Amount Due Card
       doc.roundedRect(50 + cardSpacing * 3, yPos, cardWidth, 60, 8).stroke('#e2e8f0').fill('#f8fafc');
       doc.fontSize(10).fillColor('#6b7280').font('Helvetica-Bold');
       doc.text('AMOUNT DUE', 60 + cardSpacing * 3, yPos + 10);
       doc.fontSize(14).fillColor('#8b5cf6').font('Helvetica-Bold');
-      doc.text(`$${invoice.total.toFixed(2)}`, 60 + cardSpacing * 3, yPos + 30);
+      doc.text(`$${calculatedTotal.toFixed(2)}`, 60 + cardSpacing * 3, yPos + 30);
 
       // Items Table
       yPos = 400;
@@ -142,9 +148,9 @@ const generatePDFWithPDFKit = async (invoice, company) => {
         doc.rect(50, yPos, 495, 30).fill(rowColor);
         
         doc.fontSize(11).fillColor('#1f2937').font('Helvetica-Bold');
-        doc.text(item.name, 60, yPos + 10, { width: 200 });
+        doc.text(item.name || item.description, 60, yPos + 10, { width: 200 });
         
-        if (item.description) {
+        if (item.description && item.name) {
           doc.fontSize(9).fillColor('#6b7280').font('Helvetica');
           doc.text(item.description, 60, yPos + 22, { width: 200 });
         }
@@ -162,9 +168,7 @@ const generatePDFWithPDFKit = async (invoice, company) => {
       const totalsX = 350;
       const totalsWidth = 195;
 
-      doc.roundedRect(totalsX, yPos, totalsWidth, 120, 12).stroke('#e2e8f0').fill('#f8fafc');
-
-      const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+      doc.roundedRect(totalsX, yPos, totalsWidth, 140, 12).stroke('#e2e8f0').fill('#f8fafc');
 
       // Subtotal
       doc.fontSize(12).fillColor('#4b5563').font('Helvetica');
@@ -173,21 +177,23 @@ const generatePDFWithPDFKit = async (invoice, company) => {
 
       // Tax (if any)
       if (invoice.tax > 0) {
-        doc.text('Tax', totalsX + 20, yPos + 40);
-        doc.text(`$${invoice.tax.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 40);
+        doc.text(`Tax (${invoice.tax}%)`, totalsX + 20, yPos + 40);
+        doc.text(`$${taxAmount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 40);
       }
 
       // Discount (if any)
       if (invoice.discount > 0) {
-        doc.text('Discount', totalsX + 20, yPos + 60);
-        doc.text(`-$${invoice.discount.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 60);
+        const discountY = invoice.tax > 0 ? yPos + 60 : yPos + 40;
+        doc.text(`Discount (${invoice.discount}%)`, totalsX + 20, discountY);
+        doc.text(`-$${discountAmount.toFixed(2)}`, totalsX + totalsWidth - 70, discountY);
       }
 
       // Total
-      doc.rect(totalsX + 10, yPos + 80, totalsWidth - 20, 2).fill('#8b5cf6');
+      const totalY = yPos + (invoice.tax > 0 && invoice.discount > 0 ? 80 : invoice.tax > 0 || invoice.discount > 0 ? 60 : 40);
+      doc.rect(totalsX + 10, totalY, totalsWidth - 20, 2).fill('#8b5cf6');
       doc.fontSize(16).fillColor('#4c1d95').font('Helvetica-Bold');
-      doc.text('Total Amount', totalsX + 20, yPos + 90);
-      doc.text(`$${invoice.total.toFixed(2)}`, totalsX + totalsWidth - 70, yPos + 90);
+      doc.text('Total Amount', totalsX + 20, totalY + 10);
+      doc.text(`$${calculatedTotal.toFixed(2)}`, totalsX + totalsWidth - 70, totalY + 10);
 
       // Notes (if any)
       if (invoice.notes) {
@@ -251,7 +257,10 @@ const createInvoice = async (req, res) => {
       0
     );
 
-    const total = subTotal + Number(tax) - Number(discount);
+    // Calculate tax and discount as percentages
+    const taxAmount = (subTotal * Number(tax)) / 100;
+    const discountAmount = (subTotal * Number(discount)) / 100;
+    const total = subTotal + taxAmount - discountAmount;
 
     const invoice = new Invoice({
       user: req.user.userId,
@@ -260,8 +269,8 @@ const createInvoice = async (req, res) => {
       clientEmail,
       clientAddress,
       items: parsedItems,
-      tax: Number(tax),
-      discount: Number(discount),
+      tax: Number(tax), // Store as percentage value
+      discount: Number(discount), // Store as percentage value
       total,
       issueDate,
       dueDate,
@@ -525,12 +534,20 @@ const sendInvoiceEmail = async (req, res) => {
     let pdfBuffer;
     let pdfMethod = '';
 
-    // First try: Puppeteer PDF generation
+    // First try: html-pdf-node with the correct template
     try {
-      console.log("🎯 Attempting PDF generation with Puppeteer...");
+      console.log(`🎯 Attempting PDF generation with html-pdf-node using template: ${invoice.template}...`);
+      const template = invoice.template || 'invoiceTemplate';
+      const allowedTemplates = ['invoiceTemplate', 'modernTemplate', 'creativeTemplate', 'minimalTemplate'];
+      
+      if (!allowedTemplates.includes(template)) {
+        console.warn(`⚠️ Invalid template ${template}, falling back to invoiceTemplate`);
+        template = 'invoiceTemplate';
+      }
+
       const templatePath = path.join(
         __dirname,
-        "../templates/invoiceTemplate.ejs"
+        `../templates/${template}.ejs`
       );
 
       const html = await ejs.renderFile(templatePath, {
@@ -538,178 +555,224 @@ const sendInvoiceEmail = async (req, res) => {
         company: company ? company.toObject() : {},
       });
 
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-accelerated-2d-canvas",
-          "--no-first-run",
-          "--no-zygote",
-          "--single-process",
-          "--disable-gpu"
-        ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
-      });
+      const options = { 
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20px',
+          bottom: '20px',
+          left: '20px',
+          right: '20px'
+        }
+      };
 
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "networkidle0" });
-
-      pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-      await browser.close();
+      const file = { content: html };
+      pdfBuffer = await htmlPdf.generatePdf(file, options);
       
-      pdfMethod = 'Puppeteer';
-      console.log("✅ Puppeteer PDF generation successful!");
+      pdfMethod = 'html-pdf-node';
+      console.log(`✅ html-pdf-node PDF generation successful with template: ${template}!`);
       
-    } catch (puppeteerError) {
-      console.error("❌ Puppeteer PDF Generation Failed:", puppeteerError.message);
+    } catch (htmlPdfError) {
+      console.error("❌ html-pdf-node PDF Generation Failed:", htmlPdfError.message);
       
-      // Second try: PDFKit as fallback
+      // Second try: Puppeteer PDF generation with correct template
       try {
-        console.log("🎯 Attempting PDF generation with PDFKit...");
-        pdfBuffer = await generatePDFWithPDFKit(invoice, company);
-        pdfMethod = 'PDFKit';
-        console.log("✅ PDFKit PDF generation successful!");
+        console.log("🎯 Attempting PDF generation with Puppeteer...");
+        const template = invoice.template || 'invoiceTemplate';
+        const templatePath = path.join(
+          __dirname,
+          `../templates/${template}.ejs`
+        );
+
+        const html = await ejs.renderFile(templatePath, {
+          invoice,
+          company: company ? company.toObject() : {},
+        });
+
+        const browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process",
+            "--disable-gpu"
+          ],
+          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
+        });
+
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "networkidle0" });
+
+        pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+        await browser.close();
         
-      } catch (pdfkitError) {
-        console.error("❌ PDFKit PDF Generation Failed:", pdfkitError.message);
+        pdfMethod = 'Puppeteer';
+        console.log("✅ Puppeteer PDF generation successful!");
         
-        // Final fallback: Send beautiful HTML email without PDF
-        console.log("📧 Final fallback: Sending beautiful HTML email without PDF attachment...");
+      } catch (puppeteerError) {
+        console.error("❌ Puppeteer PDF Generation Failed:", puppeteerError.message);
+        
+        // Final try: PDFKit as fallback
         try {
-          const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-            },
-          });
+          console.log("🎯 Attempting PDF generation with PDFKit...");
+          pdfBuffer = await generatePDFWithPDFKit(invoice, company);
+          pdfMethod = 'PDFKit';
+          console.log("✅ PDFKit PDF generation successful!");
+          
+        } catch (pdfkitError) {
+          console.error("❌ PDFKit PDF Generation Failed:", pdfkitError.message);
+          
+          // Final fallback: Send beautiful HTML email without PDF
+          console.log("📧 Final fallback: Sending beautiful HTML email without PDF attachment...");
+          try {
+            const transporter = nodemailer.createTransporter({
+              service: "gmail",
+              auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+              },
+            });
 
-          const mailOptions = {
-            from: `"${company?.name || "InvoX"}" <${process.env.EMAIL_USER}>`,
-            to: invoice.clientEmail,
-            subject: `💎 Invoice #${invoice.invoiceNumber} from ${company?.name || 'InvoX'}`,
-            html: `
-              <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; overflow: hidden; color: #333;">
-                
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 40px; text-align: center; color: white;">
-                  <div style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #a855f7, #ec4899, #8b5cf6); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: #1e1b4b;">X</div>
-                    <div>
-                      <div style="font-size: 28px; font-weight: 800;">InvoX</div>
-                      <div style="font-size: 14px; opacity: 0.9;">Next-gen invoicing.</div>
-                    </div>
-                  </div>
-                  <h1 style="font-size: 36px; margin: 0; font-weight: 800;">INVOICE</h1>
-                  <p style="font-size: 18px; margin: 10px 0 0 0; opacity: 0.95;">#${invoice.invoiceNumber}</p>
-                </div>
+            // Calculate correct amounts for email display
+            const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            const taxAmount = (subtotal * invoice.tax) / 100;
+            const discountAmount = (subtotal * invoice.discount) / 100;
+            const calculatedTotal = subtotal + taxAmount - discountAmount;
 
-                <!-- Content -->
-                <div style="background: white; padding: 40px;">
-                  <h2 style="color: #1f2937; margin-bottom: 30px;">Hi ${invoice.clientName} 👋</h2>
+            const mailOptions = {
+              from: `"${company?.name || "InvoX"}" <${process.env.EMAIL_USER}>`,
+              to: invoice.clientEmail,
+              subject: `💎 Invoice #${invoice.invoiceNumber} from ${company?.name || 'InvoX'}`,
+              html: `
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; overflow: hidden; color: #333;">
                   
-                  <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 30px; border-radius: 16px; border-left: 4px solid #8b5cf6; margin: 30px 0;">
-                    <h3 style="color: #4c1d95; margin-bottom: 20px; font-size: 18px;">📄 Invoice Details</h3>
-                    <div style="display: grid; gap: 15px;">
-                      <div style="display: flex; justify-content: space-between;">
-                        <strong style="color: #6b7280;">Invoice Number:</strong>
-                        <span style="color: #1f2937; font-weight: 600;">${invoice.invoiceNumber}</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between;">
-                        <strong style="color: #6b7280;">Issue Date:</strong>
-                        <span style="color: #1f2937;">${new Date(invoice.issueDate).toLocaleDateString()}</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between;">
-                        <strong style="color: #6b7280;">Due Date:</strong>
-                        <span style="color: #1f2937; font-weight: 600;">${new Date(invoice.dueDate).toLocaleDateString()}</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between;">
-                        <strong style="color: #6b7280;">Status:</strong>
-                        <span style="color: ${invoice.status === 'Paid' ? '#059669' : invoice.status === 'Sent' ? '#d97706' : '#6b7280'}; font-weight: 700;">${invoice.status}</span>
+                  <!-- Header -->
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 40px; text-align: center; color: white;">
+                    <div style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                      <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #a855f7, #ec4899, #8b5cf6); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: #1e1b4b;">X</div>
+                      <div>
+                        <div style="font-size: 28px; font-weight: 800;">InvoX</div>
+                        <div style="font-size: 14px; opacity: 0.9;">Next-gen invoicing.</div>
                       </div>
                     </div>
+                    <h1 style="font-size: 36px; margin: 0; font-weight: 800;">INVOICE</h1>
+                    <p style="font-size: 18px; margin: 10px 0 0 0; opacity: 0.95;">#${invoice.invoiceNumber}</p>
                   </div>
 
-                  <!-- Items -->
-                  <div style="margin: 30px 0;">
-                    <h3 style="color: #1f2937; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #8b5cf6;">💼 Invoice Items</h3>
-                    ${invoice.items.map(item => `
-                      <div style="background: #f8fafc; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 3px solid #8b5cf6;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                          <div>
-                            <strong style="color: #1f2937; font-size: 14px;">${item.name}</strong>
-                            ${item.description ? `<div style="color: #6b7280; font-size: 12px; margin-top: 4px;">${item.description}</div>` : ''}
-                          </div>
-                          <div style="text-align: right;">
-                            <div style="color: #1f2937; font-weight: 600;">${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}</div>
-                          </div>
+                  <!-- Content -->
+                  <div style="background: white; padding: 40px;">
+                    <h2 style="color: #1f2937; margin-bottom: 30px;">Hi ${invoice.clientName} 👋</h2>
+                    
+                    <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 30px; border-radius: 16px; border-left: 4px solid #8b5cf6; margin: 30px 0;">
+                      <h3 style="color: #4c1d95; margin-bottom: 20px; font-size: 18px;">📄 Invoice Details</h3>
+                      <div style="display: grid; gap: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                          <strong style="color: #6b7280;">Invoice Number:</strong>
+                          <span style="color: #1f2937; font-weight: 600;">${invoice.invoiceNumber}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                          <strong style="color: #6b7280;">Issue Date:</strong>
+                          <span style="color: #1f2937;">${new Date(invoice.issueDate).toLocaleDateString()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                          <strong style="color: #6b7280;">Due Date:</strong>
+                          <span style="color: #1f2937; font-weight: 600;">${new Date(invoice.dueDate).toLocaleDateString()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                          <strong style="color: #6b7280;">Status:</strong>
+                          <span style="color: ${invoice.status === 'Paid' ? '#059669' : invoice.status === 'Sent' ? '#d97706' : '#6b7280'}; font-weight: 700;">${invoice.status}</span>
                         </div>
                       </div>
-                    `).join('')}
+                    </div>
+
+                    <!-- Items -->
+                    <div style="margin: 30px 0;">
+                      <h3 style="color: #1f2937; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #8b5cf6;">💼 Invoice Items</h3>
+                      ${invoice.items.map(item => `
+                        <div style="background: #f8fafc; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 3px solid #8b5cf6;">
+                          <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                              <strong style="color: #1f2937; font-size: 14px;">${item.name || item.description}</strong>
+                              ${item.description && item.name ? `<div style="color: #6b7280; font-size: 12px; margin-top: 4px;">${item.description}</div>` : ''}
+                            </div>
+                            <div style="text-align: right;">
+                              <div style="color: #1f2937; font-weight: 600;">${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+
+                    <!-- Totals -->
+                    <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 25px; border-radius: 16px; margin: 30px 0; border: 2px solid #e2e8f0;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #4b5563;">Subtotal:</span>
+                        <span style="color: #1f2937; font-weight: 600;">$${subtotal.toFixed(2)}</span>
+                      </div>
+                      ${invoice.tax > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Tax (${invoice.tax}%):</span><span style="color: #1f2937; font-weight: 600;">$${taxAmount.toFixed(2)}</span></div>` : ''}
+                      ${invoice.discount > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Discount (${invoice.discount}%):</span><span style="color: #1f2937; font-weight: 600;">-$${discountAmount.toFixed(2)}</span></div>` : ''}
+                      <div style="border-top: 3px solid #8b5cf6; padding-top: 15px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                          <span style="font-size: 20px; font-weight: 700; color: #4c1d95;">Total Amount:</span>
+                          <span style="font-size: 20px; font-weight: 700; color: #4c1d95;">$${calculatedTotal.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    ${invoice.notes ? `
+                      <div style="background: linear-gradient(135deg, #fefce8, #fef3c7); padding: 20px; border-radius: 12px; border-left: 6px solid #f59e0b; margin: 30px 0;">
+                        <h4 style="color: #92400e; margin-bottom: 10px;">📝 Additional Notes</h4>
+                        <p style="color: #78350f; margin: 0; line-height: 1.6;">${invoice.notes}</p>
+                      </div>
+                    ` : ''}
+
+                    <div style="text-align: center; margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 16px;">
+                      <p style="color: #0369a1; font-size: 16px; margin: 0;">📧 <strong>PDF version temporarily unavailable</strong></p>
+                      <p style="color: #0369a1; font-size: 14px; margin: 10px 0 0 0;">Please contact us if you need the PDF version of this invoice.</p>
+                    </div>
+
                   </div>
 
-                  <!-- Totals -->
-                  <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 25px; border-radius: 16px; margin: 30px 0; border: 2px solid #e2e8f0;">
-                    ${invoice.tax > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Tax:</span><span style="color: #1f2937; font-weight: 600;">$${invoice.tax.toFixed(2)}</span></div>` : ''}
-                    ${invoice.discount > 0 ? `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="color: #4b5563;">Discount:</span><span style="color: #1f2937; font-weight: 600;">-$${invoice.discount.toFixed(2)}</span></div>` : ''}
-                    <div style="border-top: 3px solid #8b5cf6; padding-top: 15px; margin-top: 15px;">
-                      <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 20px; font-weight: 700; color: #4c1d95;">Total Amount:</span>
-                        <span style="font-size: 20px; font-weight: 700; color: #4c1d95;">$${invoice.total.toFixed(2)}</span>
+                  <!-- Footer -->
+                  <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; padding: 30px; text-align: center;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 18px;">Thank You for Your Business! 🎉</h3>
+                    <p style="margin: 0 0 20px 0; opacity: 0.9; font-size: 14px;">We appreciate the opportunity to work with you.</p>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; margin-top: 20px;">
+                      <div style="display: inline-flex; align-items: center; gap: 8px;">
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">X</div>
+                        <span style="font-weight: 700; font-size: 16px;">Powered by InvoX</span>
                       </div>
                     </div>
                   </div>
 
-                  ${invoice.notes ? `
-                    <div style="background: linear-gradient(135deg, #fefce8, #fef3c7); padding: 20px; border-radius: 12px; border-left: 6px solid #f59e0b; margin: 30px 0;">
-                      <h4 style="color: #92400e; margin-bottom: 10px;">📝 Additional Notes</h4>
-                      <p style="color: #78350f; margin: 0; line-height: 1.6;">${invoice.notes}</p>
-                    </div>
-                  ` : ''}
-
-                  <div style="text-align: center; margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 16px;">
-                    <p style="color: #0369a1; font-size: 16px; margin: 0;">📧 <strong>PDF version temporarily unavailable</strong></p>
-                    <p style="color: #0369a1; font-size: 14px; margin: 10px 0 0 0;">Please contact us if you need the PDF version of this invoice.</p>
-                  </div>
-
                 </div>
+              `,
+            };
 
-                <!-- Footer -->
-                <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; padding: 30px; text-align: center;">
-                  <h3 style="margin: 0 0 10px 0; font-size: 18px;">Thank You for Your Business! 🎉</h3>
-                  <p style="margin: 0 0 20px 0; opacity: 0.9; font-size: 14px;">We appreciate the opportunity to work with you.</p>
-                  <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; margin-top: 20px;">
-                    <div style="display: inline-flex; align-items: center; gap: 8px;">
-                      <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">X</div>
-                      <span style="font-weight: 700; font-size: 16px;">Powered by InvoX</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            `,
-          };
-
-          await transporter.sendMail(mailOptions);
-          return res.json({ 
-            message: "Invoice sent via beautiful email notification (PDF generation temporarily unavailable)",
-            method: "HTML Email Fallback"
-          });
-          
-        } catch (emailError) {
-          console.error("❌ Final fallback email also failed:", emailError);
-          return res.status(500).json({ 
-            message: "Failed to send invoice email",
-            error: process.env.NODE_ENV === 'development' ? emailError.message : 'Email sending error'
-          });
+            await transporter.sendMail(mailOptions);
+            return res.json({ 
+              message: "Invoice sent via beautiful email notification (PDF generation temporarily unavailable)",
+              method: "HTML Email Fallback",
+              template: invoice.template
+            });
+            
+          } catch (emailError) {
+            console.error("❌ Final fallback email also failed:", emailError);
+            return res.status(500).json({ 
+              message: "Failed to send invoice email",
+              error: process.env.NODE_ENV === 'development' ? emailError.message : 'Email sending error'
+            });
+          }
         }
       }
     }
 
     // Send email with PDF attachment
-    const transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransporter({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
@@ -717,10 +780,16 @@ const sendInvoiceEmail = async (req, res) => {
       },
     });
 
+    // Calculate correct amounts for email display
+    const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const taxAmount = (subtotal * invoice.tax) / 100;
+    const discountAmount = (subtotal * invoice.discount) / 100;
+    const calculatedTotal = subtotal + taxAmount - discountAmount;
+
     const mailOptions = {
       from: `"${company?.name || "InvoX"}" <${process.env.EMAIL_USER}>`,
       to: invoice.clientEmail,
-      subject: `💎 Invoice #${invoice.invoiceNumber} from ${company?.name || 'InvoX'}`,
+      subject: `💎 Invoice #${invoice.invoiceNumber} from ${company?.name || 'InvoX'} - ${invoice.template.replace('Template', '').toUpperCase()} Style`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; overflow: hidden;">
           
@@ -735,26 +804,30 @@ const sendInvoiceEmail = async (req, res) => {
             </div>
             <h1 style="font-size: 36px; margin: 0; font-weight: 800;">INVOICE ATTACHED</h1>
             <p style="font-size: 18px; margin: 10px 0 0 0; opacity: 0.95;">#${invoice.invoiceNumber}</p>
+            <p style="font-size: 14px; margin: 5px 0 0 0; opacity: 0.8;">Template: ${invoice.template.replace('Template', '').toUpperCase()}</p>
           </div>
 
           <!-- Content -->
           <div style="background: white; padding: 40px; text-align: center;">
             <h2 style="color: #1f2937; margin-bottom: 20px;">Hi ${invoice.clientName} 👋</h2>
             <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-              Your invoice is ready! Please find the beautiful PDF attached to this email.
+              Your invoice is ready! Please find the beautiful ${invoice.template.replace('Template', '').toUpperCase()} style PDF attached to this email.
             </p>
             
             <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 25px; border-radius: 16px; border-left: 4px solid #22c55e; margin: 30px 0;">
               <p style="color: #166534; font-size: 14px; margin: 0;">
                 📎 <strong>PDF generated successfully using ${pdfMethod}</strong><br>
-                Your invoice is attached as a beautiful, professional PDF document.
+                Your invoice is attached as a beautiful, professional ${invoice.template.replace('Template', '').toUpperCase()} style PDF document.
               </p>
             </div>
 
             <div style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 25px; border-radius: 16px; margin: 30px 0;">
               <h3 style="color: #4c1d95; margin-bottom: 15px;">📋 Quick Summary</h3>
               <div style="display: grid; gap: 10px;">
-                <div><strong style="color: #6b7280;">Amount Due:</strong> <span style="color: #8b5cf6; font-weight: 700; font-size: 18px;">$${invoice.total.toFixed(2)}</span></div>
+                <div><strong style="color: #6b7280;">Subtotal:</strong> <span style="color: #1f2937;">$${subtotal.toFixed(2)}</span></div>
+                ${invoice.tax > 0 ? `<div><strong style="color: #6b7280;">Tax (${invoice.tax}%):</strong> <span style="color: #1f2937;">$${taxAmount.toFixed(2)}</span></div>` : ''}
+                ${invoice.discount > 0 ? `<div><strong style="color: #6b7280;">Discount (${invoice.discount}%):</strong> <span style="color: #1f2937;">-$${discountAmount.toFixed(2)}</span></div>` : ''}
+                <div style="border-top: 2px solid #8b5cf6; padding-top: 10px; margin-top: 10px;"><strong style="color: #6b7280;">Amount Due:</strong> <span style="color: #8b5cf6; font-weight: 700; font-size: 18px;">$${calculatedTotal.toFixed(2)}</span></div>
                 <div><strong style="color: #6b7280;">Due Date:</strong> <span style="color: #1f2937;">${new Date(invoice.dueDate).toLocaleDateString()}</span></div>
                 <div><strong style="color: #6b7280;">Status:</strong> <span style="color: ${invoice.status === 'Paid' ? '#059669' : invoice.status === 'Sent' ? '#d97706' : '#6b7280'}; font-weight: 600;">${invoice.status}</span></div>
               </div>
@@ -777,7 +850,7 @@ const sendInvoiceEmail = async (req, res) => {
       `,
       attachments: [
         {
-          filename: `InvoX-Invoice-${invoice.invoiceNumber}.pdf`,
+          filename: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template.replace('Template', '').toUpperCase()}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf'
         }
@@ -787,9 +860,10 @@ const sendInvoiceEmail = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     res.json({ 
-      message: `Invoice sent successfully via email with PDF attachment`,
+      message: `Invoice sent successfully via email with ${invoice.template.replace('Template', '').toUpperCase()} style PDF attachment`,
       method: pdfMethod,
-      attachment: `InvoX-Invoice-${invoice.invoiceNumber}.pdf`
+      template: invoice.template,
+      attachment: `InvoX-Invoice-${invoice.invoiceNumber}-${invoice.template.replace('Template', '').toUpperCase()}.pdf`
     });
 
   } catch (error) {
