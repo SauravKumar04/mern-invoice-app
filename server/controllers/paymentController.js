@@ -86,7 +86,7 @@ const generateAndSendPaymentQR = async (req, res) => {
     const qrCodeBase64 = qrCodeBuffer.toString('base64');
 
     // Setup email transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
