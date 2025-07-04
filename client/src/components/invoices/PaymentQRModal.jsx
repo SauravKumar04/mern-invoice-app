@@ -107,7 +107,7 @@ const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
   const handleDownloadQR = async () => {
     setDownloadingQR(true);
     try {
-      const response = await fetch(`/api/payments/${invoice._id}/qr-code?paymentMethod=${paymentMethod}`, {
+      const response = await fetch(`${import.meta.env.VITE_API || 'http://localhost:4000'}/api/payments/${invoice._id}/qr-code?paymentMethod=${paymentMethod}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

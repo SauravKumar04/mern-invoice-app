@@ -22,7 +22,13 @@ import {
   CheckCircle,
   Info,
   ArrowRight,
-  Edit3
+  Edit3,
+  CreditCard,
+  Wallet,
+  Smartphone,
+  Bitcoin,
+  DollarSign,
+  QrCode
 } from 'lucide-react';
 
 const CompanySettings = () => {
@@ -38,6 +44,14 @@ const CompanySettings = () => {
     address: '',
     phone: '',
     website: '',
+    email: '',
+    // Payment Information
+    paypalHandle: '',
+    venmoHandle: '',
+    cashappHandle: '',
+    zelleEmail: '',
+    bitcoinAddress: '',
+    stripePublishableKey: '',
   });
 
   useEffect(() => {
@@ -51,6 +65,14 @@ const CompanySettings = () => {
           address: data?.address || '',
           phone: data?.phone || '',
           website: data?.website || '',
+          email: data?.email || '',
+          // Payment Information
+          paypalHandle: data?.paypalHandle || '',
+          venmoHandle: data?.venmoHandle || '',
+          cashappHandle: data?.cashappHandle || '',
+          zelleEmail: data?.zelleEmail || '',
+          bitcoinAddress: data?.bitcoinAddress || '',
+          stripePublishableKey: data?.stripePublishableKey || '',
         });
       } catch (error) {
         toast.error('Failed to load company info');
@@ -74,6 +96,14 @@ const CompanySettings = () => {
       data.append('address', formData.address);
       data.append('phone', formData.phone);
       data.append('website', formData.website);
+      data.append('email', formData.email);
+      // Payment Information
+      data.append('paypalHandle', formData.paypalHandle);
+      data.append('venmoHandle', formData.venmoHandle);
+      data.append('cashappHandle', formData.cashappHandle);
+      data.append('zelleEmail', formData.zelleEmail);
+      data.append('bitcoinAddress', formData.bitcoinAddress);
+      data.append('stripePublishableKey', formData.stripePublishableKey);
 
       const savedCompany = await setCompanyInfo(data);
       setCompany(savedCompany);
@@ -268,6 +298,19 @@ const CompanySettings = () => {
                 <div className="space-y-6">
                   <div className="relative">
                     <FormInput
+                      label="Business Email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      type="email"
+                      variant="dark"
+                      placeholder="contact@yourcompany.com"
+                    />
+                    <Mail className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                  </div>
+
+                  <div className="relative">
+                    <FormInput
                       label="Business Address"
                       name="address"
                       value={formData.address}
@@ -313,6 +356,119 @@ const CompanySettings = () => {
                     <p className="text-xs text-blue-600">
                       Adding your website builds credibility and provides clients with more information.
                     </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Information Section */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-purple-100/30 to-transparent rounded-full blur-xl" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                    <QrCode className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Payment Information</h3>
+                    <p className="text-sm text-gray-600">Configure payment accounts for QR code generation</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="relative">
+                    <FormInput
+                      label="PayPal Handle"
+                      name="paypalHandle"
+                      value={formData.paypalHandle}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="yourcompany"
+                    />
+                    <Wallet className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Used for PayPal.me/yourcompany links</p>
+                  </div>
+                  
+                  <div className="relative">
+                    <FormInput
+                      label="Venmo Handle"
+                      name="venmoHandle"
+                      value={formData.venmoHandle}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="your-venmo-handle"
+                    />
+                    <Smartphone className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your Venmo username (without @)</p>
+                  </div>
+                  
+                  <div className="relative">
+                    <FormInput
+                      label="Cash App Handle"
+                      name="cashappHandle"
+                      value={formData.cashappHandle}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="yourcashapp"
+                    />
+                    <DollarSign className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your Cash App username (without $)</p>
+                  </div>
+                  
+                  <div className="relative">
+                    <FormInput
+                      label="Zelle Email"
+                      name="zelleEmail"
+                      value={formData.zelleEmail}
+                      onChange={handleChange}
+                      type="email"
+                      variant="dark"
+                      placeholder="payments@yourcompany.com"
+                    />
+                    <Mail className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Email linked to your Zelle account</p>
+                  </div>
+                  
+                  <div className="relative lg:col-span-2">
+                    <FormInput
+                      label="Bitcoin Address"
+                      name="bitcoinAddress"
+                      value={formData.bitcoinAddress}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+                    />
+                    <Bitcoin className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your Bitcoin wallet address for cryptocurrency payments</p>
+                  </div>
+                  
+                  <div className="relative lg:col-span-2">
+                    <FormInput
+                      label="Stripe Publishable Key (Optional)"
+                      name="stripePublishableKey"
+                      value={formData.stripePublishableKey}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="pk_test_..."
+                    />
+                    <CreditCard className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your Stripe publishable key for credit card payments</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <QrCode className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-medium text-purple-700">QR Code Payments</span>
+                  </div>
+                  <p className="text-xs text-purple-600 mb-2">
+                    Configure your payment accounts to enable QR code generation for invoices. Clients can scan QR codes to pay instantly.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Instant Payments</span>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Mobile Friendly</span>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Multiple Methods</span>
                   </div>
                 </div>
               </div>
@@ -384,7 +540,19 @@ const CompanySettings = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData({ name: '', address: '', phone: '', website: '' });
+                    setFormData({ 
+                      name: '', 
+                      address: '', 
+                      phone: '', 
+                      website: '', 
+                      email: '',
+                      paypalHandle: '',
+                      venmoHandle: '',
+                      cashappHandle: '',
+                      zelleEmail: '',
+                      bitcoinAddress: '',
+                      stripePublishableKey: ''
+                    });
                   }}
                   className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
                 >
