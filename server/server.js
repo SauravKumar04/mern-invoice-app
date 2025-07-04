@@ -40,10 +40,12 @@ app.get("/", (req, res) => {
 const authRoutes = require("./routes/authRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const companyRoutes = require("./routes/companyRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/company", companyRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // ✅ Start server only after MongoDB connects
 const PORT = process.env.PORT || 4000;

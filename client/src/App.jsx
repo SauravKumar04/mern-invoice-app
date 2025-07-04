@@ -15,6 +15,7 @@ import InvoiceCreate from './pages/invoices/InvoiceCreate';
 import InvoiceEdit from './pages/invoices/InvoiceEdit';
 import InvoiceView from './pages/invoices/InvoiceView';
 import CompanySettings from './pages/company/CompanySettings';
+import PaymentHub from './pages/PaymentHub';
 import 'react-toastify/dist/ReactToastify.css';
 import { Navigate } from 'react-router-dom';
 
@@ -29,6 +30,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/payment-hub/:invoiceId" element={<PaymentHub />} />
 
         {/* Protected Routes */}
         <Route

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getInvoiceById, sendInvoiceEmail } from "../../api/invoices";
+import { sendPaymentQRCode } from "../../api/payments";
 import { toast } from "react-toastify";
 import Loader from "../../components/ui/Loader";
 import TemplatePDFDownload from "../../components/invoices/TemplatePDFDownload";
+import PaymentQRModal from "../../components/invoices/PaymentQRModal";
 import { format } from "date-fns";
 import { 
   ArrowLeft, 
@@ -26,7 +28,8 @@ import {
   Receipt,
   Send,
   Eye,
-  TrendingUp
+  TrendingUp,
+  QrCode
 } from "lucide-react";
 
 const InvoiceView = () => {
@@ -37,6 +40,7 @@ const InvoiceView = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +67,16 @@ const InvoiceView = () => {
       toast.error("Failed to send invoice email");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSendQRCode = async (data) => {
+    try {
+      await sendPaymentQRCode(id, data);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Failed to send QR code:", error);
+      return Promise.reject(error);
     }
   };
 
@@ -234,6 +248,18 @@ const InvoiceView = () => {
                         Send Email
                       </>
                     )}
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                </button>
+
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 relative overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <QrCode className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                    Send QR Code
+                    <Sparkles className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </button>
@@ -543,6 +569,14 @@ const InvoiceView = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment QR Modal */}
+      <PaymentQRModal
+        invoice={invoice}
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        onSendQR={handleSendQRCode}
+      />
     </div>
   );
 };

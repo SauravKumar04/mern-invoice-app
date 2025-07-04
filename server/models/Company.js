@@ -7,6 +7,16 @@ const companySchema = new mongoose.Schema(
     address: { type: String },
     phone: { type: String },
     website: { type: String },
+    email: { type: String },
+    // Payment Information
+    paypalHandle: { type: String },
+    venmoHandle: { type: String },
+    cashappHandle: { type: String },
+    zelleEmail: { type: String },
+    bitcoinAddress: { type: String },
+    stripePublishableKey: { type: String },
+    // Logo and branding
+    logo: { type: String },
   },
   { timestamps: true }
 );
