@@ -2,7 +2,20 @@ const Company = require("../models/Company");
 
 const setCompanyInfo = async (req, res) => {
   try {
-    const { name, address, phone, website } = req.body;
+    const { 
+      name, 
+      address, 
+      phone, 
+      website, 
+      email,
+      // Payment Information
+      paypalHandle,
+      venmoHandle,
+      cashappHandle,
+      zelleEmail,
+      bitcoinAddress,
+      stripePublishableKey
+    } = req.body;
 
     const existing = await Company.findOne({ user: req.user.userId });
 
@@ -11,6 +24,15 @@ const setCompanyInfo = async (req, res) => {
       existing.address = address;
       existing.phone = phone;
       existing.website = website;
+      existing.email = email;
+      // Payment Information
+      existing.paypalHandle = paypalHandle;
+      existing.venmoHandle = venmoHandle;
+      existing.cashappHandle = cashappHandle;
+      existing.zelleEmail = zelleEmail;
+      existing.bitcoinAddress = bitcoinAddress;
+      existing.stripePublishableKey = stripePublishableKey;
+      
       const updated = await existing.save();
       return res.json({ message: "Company info updated", company: updated });
     }
@@ -21,6 +43,14 @@ const setCompanyInfo = async (req, res) => {
       address,
       phone,
       website,
+      email,
+      // Payment Information
+      paypalHandle,
+      venmoHandle,
+      cashappHandle,
+      zelleEmail,
+      bitcoinAddress,
+      stripePublishableKey,
     });
 
     const saved = await newCompany.save();
