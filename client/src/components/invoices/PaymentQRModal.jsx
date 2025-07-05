@@ -14,7 +14,8 @@ import {
   CheckCircle,
   Send,
   Download,
-  MessageSquare
+  MessageSquare,
+  Circle
 } from 'lucide-react';
 
 const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
@@ -68,6 +69,24 @@ const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
       color: 'from-green-500 to-green-600',
       gradient: 'from-green-50 to-green-100',
       borderColor: 'border-green-200'
+    },
+    {
+      id: 'googlepay',
+      name: 'Google Pay',
+      description: 'Pay with Google Pay (UPI)',
+      icon: <Circle className="w-5 h-5" />,
+      color: 'from-blue-500 to-blue-600',
+      gradient: 'from-blue-50 to-blue-100',
+      borderColor: 'border-blue-200'
+    },
+    {
+      id: 'phonepe',
+      name: 'PhonePe',
+      description: 'Pay with PhonePe (UPI)',
+      icon: <Smartphone className="w-5 h-5" />,
+      color: 'from-purple-500 to-purple-600',
+      gradient: 'from-purple-50 to-purple-100',
+      borderColor: 'border-purple-200'
     },
     {
       id: 'bitcoin',

@@ -150,6 +150,20 @@ router.get("/:id/pdf-html/:template", protect, generateInvoicePdfHTML);
 // Update only the status of a specific invoice (MUST come before `/:id`)
 router.patch("/:id/status", protect, updateInvoiceStatus);
 
+// Get a single invoice by ID (public endpoint for payment hub)
+router.get("/:id/public", async (req, res) => {
+  try {
+    const Invoice = require("../models/Invoice");
+    const invoice = await Invoice.findById(req.params.id).select('invoiceNumber clientName items tax discount');
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    res.json(invoice);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Get a single invoice by ID
 router.get("/:id", protect, getInvoiceById);
 

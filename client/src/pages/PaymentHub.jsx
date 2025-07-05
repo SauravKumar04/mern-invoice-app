@@ -15,13 +15,16 @@ import {
   ArrowRight,
   Shield,
   Zap,
-  Globe
+  Globe,
+  X
 } from 'lucide-react';
 
 const PaymentHub = () => {
   const { invoiceId } = useParams();
   const [searchParams] = useSearchParams();
   const [mounted, setMounted] = useState(false);
+  const [company, setCompany] = useState(null);
+  const [invoice, setInvoice] = useState(null);
   
   const amount = searchParams.get('amount');
   const invoiceNumber = searchParams.get('invoice');
@@ -29,7 +32,32 @@ const PaymentHub = () => {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Fetch invoice and company data
+    const fetchData = async () => {
+      try {
+        // Fetch invoice data (public endpoint for payment hub)
+        const invoiceResponse = await fetch(`${import.meta.env.VITE_API || 'http://localhost:4000/api'}/invoices/${invoiceId}/public`);
+        if (invoiceResponse.ok) {
+          const invoiceData = await invoiceResponse.json();
+          setInvoice(invoiceData);
+        }
+        
+        // Fetch company data (public endpoint for payment hub)
+        const companyResponse = await fetch(`${import.meta.env.VITE_API || 'http://localhost:4000/api'}/company/${invoiceId}/public`);
+        if (companyResponse.ok) {
+          const companyData = await companyResponse.json();
+          setCompany(companyData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch payment data:', error);
+      }
+    };
+    
+    if (invoiceId) {
+      fetchData();
+    }
+  }, [invoiceId]);
 
   const paymentMethods = [
     {
@@ -52,7 +80,7 @@ const PaymentHub = () => {
       color: 'from-yellow-500 to-yellow-600',
       gradient: 'from-yellow-50 to-yellow-100',
       borderColor: 'border-yellow-200',
-      url: `https://paypal.me/yourcompany/${amount}`,
+      url: `https://paypal.me/${company?.paypalHandle || 'yourcompany'}/${amount}`,
       features: ['Trusted', 'Fast', 'Buyer Protection']
     },
     {
@@ -63,7 +91,7 @@ const PaymentHub = () => {
       color: 'from-cyan-500 to-cyan-600',
       gradient: 'from-cyan-50 to-cyan-100',
       borderColor: 'border-cyan-200',
-      url: `https://venmo.com/yourcompany?txn=pay&amount=${amount}&note=Invoice%20${invoiceNumber}`,
+      url: `https://venmo.com/${company?.venmoHandle || 'yourcompany'}?txn=pay&amount=${amount}&note=Invoice%20${invoiceNumber}`,
       features: ['Mobile-First', 'Social', 'US Only']
     },
     {
@@ -74,8 +102,30 @@ const PaymentHub = () => {
       color: 'from-green-500 to-green-600',
       gradient: 'from-green-50 to-green-100',
       borderColor: 'border-green-200',
-      url: `https://cash.app/$yourcompany/${amount}`,
+      url: `https://cash.app/$${company?.cashappHandle || 'yourcompany'}/${amount}`,
       features: ['Instant', 'Mobile', 'Popular']
+    },
+    {
+      id: 'googlepay',
+      name: 'Google Pay',
+      description: 'Pay with Google Pay (UPI)',
+      icon: <Smartphone className="w-6 h-6" />,
+      color: 'from-blue-500 to-blue-600',
+      gradient: 'from-blue-50 to-blue-100',
+      borderColor: 'border-blue-200',
+      url: `upi://pay?pa=${company?.googlePayUPI || 'yourcompany@paytm'}&pn=${encodeURIComponent(company?.name || 'Company Name')}&am=${amount}&cu=INR&tr=${invoiceNumber}`,
+      features: ['UPI', 'Instant', 'India']
+    },
+    {
+      id: 'phonepe',
+      name: 'PhonePe',
+      description: 'Pay with PhonePe (UPI)',
+      icon: <Smartphone className="w-6 h-6" />,
+      color: 'from-purple-500 to-purple-600',
+      gradient: 'from-purple-50 to-purple-100',
+      borderColor: 'border-purple-200',
+      url: `upi://pay?pa=${company?.phonepeUPI || 'yourcompany@ybl'}&pn=${encodeURIComponent(company?.name || 'Company Name')}&am=${amount}&cu=INR&tr=${invoiceNumber}`,
+      features: ['UPI', 'Fast', 'Secure']
     },
     {
       id: 'bitcoin',
@@ -96,7 +146,7 @@ const PaymentHub = () => {
       color: 'from-purple-500 to-purple-600',
       gradient: 'from-purple-50 to-purple-100',
       borderColor: 'border-purple-200',
-      url: `mailto:payment@yourcompany.com?subject=Payment%20for%20Invoice%20${invoiceNumber}&body=Amount:%20$${amount}`,
+      url: `mailto:${company?.zelleEmail || company?.email || 'payment@yourcompany.com'}?subject=Payment%20for%20Invoice%20${invoiceNumber}&body=Amount:%20$${amount}`,
       features: ['Bank Transfer', 'No Fees', 'Secure']
     }
   ];
@@ -105,9 +155,28 @@ const PaymentHub = () => {
     if (method.id === 'stripe') {
       // Internal navigation for Stripe
       window.location.href = method.url;
+    } else if (method.id === 'googlepay' || method.id === 'phonepe') {
+      // UPI deep links should try to open the app first
+      try {
+        window.location.href = method.url;
+      } catch (error) {
+        // Fallback to copy URL if app is not available
+        navigator.clipboard.writeText(method.url).then(() => {
+          alert(`${method.name} app not found. Payment URL copied to clipboard.`);
+        });
+      }
     } else {
       // External links for other methods
       window.open(method.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleClose = () => {
+    // Go back to previous page or close the window
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.close();
     }
   };
 
@@ -129,7 +198,16 @@ const PaymentHub = () => {
       }`}>
         
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative">
+          {/* Close Button */}
+          <button
+            onClick={handleClose}
+            className="absolute top-0 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10"
+            title="Close Payment Options"
+          >
+            <X className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+          </button>
+          
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
               <CreditCard className="w-8 h-8 text-white" />
