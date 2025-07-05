@@ -15,6 +15,9 @@ const companySchema = new mongoose.Schema(
     zelleEmail: { type: String },
     bitcoinAddress: { type: String },
     stripePublishableKey: { type: String },
+    // UPI Payment Methods
+    googlePayUPI: { type: String },
+    phonepeUPI: { type: String },
     // Logo and branding
     logo: { type: String },
   },

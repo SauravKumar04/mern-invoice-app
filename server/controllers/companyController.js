@@ -14,7 +14,10 @@ const setCompanyInfo = async (req, res) => {
       cashappHandle,
       zelleEmail,
       bitcoinAddress,
-      stripePublishableKey
+      stripePublishableKey,
+      // UPI Payment Methods
+      googlePayUPI,
+      phonepeUPI
     } = req.body;
 
     const existing = await Company.findOne({ user: req.user.userId });
@@ -32,6 +35,9 @@ const setCompanyInfo = async (req, res) => {
       existing.zelleEmail = zelleEmail;
       existing.bitcoinAddress = bitcoinAddress;
       existing.stripePublishableKey = stripePublishableKey;
+      // UPI Payment Methods
+      existing.googlePayUPI = googlePayUPI;
+      existing.phonepeUPI = phonepeUPI;
       
       const updated = await existing.save();
       return res.json({ message: "Company info updated", company: updated });
@@ -51,6 +57,9 @@ const setCompanyInfo = async (req, res) => {
       zelleEmail,
       bitcoinAddress,
       stripePublishableKey,
+      // UPI Payment Methods
+      googlePayUPI,
+      phonepeUPI,
     });
 
     const saved = await newCompany.save();

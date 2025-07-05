@@ -52,6 +52,9 @@ const CompanySettings = () => {
     zelleEmail: '',
     bitcoinAddress: '',
     stripePublishableKey: '',
+    // UPI Payment Methods
+    googlePayUPI: '',
+    phonepeUPI: '',
   });
 
   useEffect(() => {
@@ -73,6 +76,9 @@ const CompanySettings = () => {
           zelleEmail: data?.zelleEmail || '',
           bitcoinAddress: data?.bitcoinAddress || '',
           stripePublishableKey: data?.stripePublishableKey || '',
+          // UPI Payment Methods
+          googlePayUPI: data?.googlePayUPI || '',
+          phonepeUPI: data?.phonepeUPI || '',
         });
       } catch (error) {
         toast.error('Failed to load company info');
@@ -104,6 +110,9 @@ const CompanySettings = () => {
       data.append('zelleEmail', formData.zelleEmail);
       data.append('bitcoinAddress', formData.bitcoinAddress);
       data.append('stripePublishableKey', formData.stripePublishableKey);
+      // UPI Payment Methods
+      data.append('googlePayUPI', formData.googlePayUPI);
+      data.append('phonepeUPI', formData.phonepeUPI);
 
       const savedCompany = await setCompanyInfo(data);
       setCompany(savedCompany);
@@ -455,6 +464,32 @@ const CompanySettings = () => {
                     <CreditCard className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
                     <p className="text-xs text-gray-500 mt-1">Your Stripe publishable key for credit card payments</p>
                   </div>
+                  
+                  <div className="relative">
+                    <FormInput
+                      label="Google Pay UPI ID"
+                      name="googlePayUPI"
+                      value={formData.googlePayUPI}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="yourname@paytm"
+                    />
+                    <Smartphone className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your UPI ID for Google Pay payments</p>
+                  </div>
+                  
+                  <div className="relative">
+                    <FormInput
+                      label="PhonePe UPI ID"
+                      name="phonepeUPI"
+                      value={formData.phonepeUPI}
+                      onChange={handleChange}
+                      variant="dark"
+                      placeholder="yourname@ybl"
+                    />
+                    <Smartphone className="absolute top-8 right-3 w-4 h-4 text-gray-400" />
+                    <p className="text-xs text-gray-500 mt-1">Your UPI ID for PhonePe payments</p>
+                  </div>
                 </div>
 
                 <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
@@ -551,7 +586,9 @@ const CompanySettings = () => {
                       cashappHandle: '',
                       zelleEmail: '',
                       bitcoinAddress: '',
-                      stripePublishableKey: ''
+                      stripePublishableKey: '',
+                      googlePayUPI: '',
+                      phonepeUPI: '',
                     });
                   }}
                   className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
