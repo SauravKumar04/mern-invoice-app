@@ -85,20 +85,31 @@ const generateAndSendPaymentQR = async (req, res) => {
     const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, qrCodeOptions);
     const qrCodeBase64 = qrCodeBuffer.toString('base64');
 
-    // Setup email transporter
+    // Setup email transporter - Enhanced configuration for better Gmail compatibility
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
-      secure: false,
+      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      tls: { 
-        rejectUnauthorized: false 
-      }
+      tls: {
+        rejectUnauthorized: false // Accept self-signed certificates
+      },
+      debug: process.env.NODE_ENV === 'development', // Enable debug output
+      logger: process.env.NODE_ENV === 'development' // Log information in console
     });
+
+    // Verify transporter configuration
+    try {
+      await transporter.verify();
+      console.log("✅ Email transporter configuration verified");
+    } catch (verifyError) {
+      console.error("❌ Email transporter verification failed:", verifyError);
+      throw new Error(`Email configuration error: ${verifyError.message}`);
+    }
 
     // Create beautiful email HTML
     const emailHTML = `
@@ -273,18 +284,27 @@ const generateAndSendPaymentQR = async (req, res) => {
     let errorCode = "QR_GENERATION_FAILED";
     
     if (error.code === 'EAUTH' || error.responseCode === 535) {
-      errorMessage = "Email authentication failed. Please check your email configuration.";
+      errorMessage = "Email authentication failed. Please check your Gmail App Password.";
       errorCode = "EMAIL_AUTH_FAILED";
-    } else if (error.code === 'ENOTFOUND') {
-      errorMessage = "Network error. Unable to send email.";
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      errorMessage = "Network error. Unable to connect to Gmail servers.";
       errorCode = "EMAIL_NETWORK_ERROR";
+    } else if (error.responseCode === 550) {
+      errorMessage = "Invalid recipient email address.";
+      errorCode = "EMAIL_INVALID_RECIPIENT";
     }
     
     res.status(500).json({
       success: false,
       error: errorCode,
       message: errorMessage,
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      troubleshooting: {
+        gmail_setup: "Ensure you're using a Gmail App Password, not your regular password",
+        two_factor: "Enable 2-Factor Authentication on your Google account",
+        app_password: "Generate an App Password in Google Account settings",
+        security: "Check that your Gmail account allows less secure apps or use App Passwords"
+      }
     });
   }
 };
