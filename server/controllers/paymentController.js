@@ -56,6 +56,9 @@ const generateAndSendPaymentQR = async (req, res) => {
         zelle: `mailto:${company?.zelleEmail || company?.email || 'payment@yourcompany.com'}?subject=Payment%20for%20Invoice%20${invoice.invoiceNumber}&body=Amount:%20$${totalAmount.toFixed(2)}`,
         stripe: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pay/${invoiceId}`,
         bitcoin: `bitcoin:${company?.bitcoinAddress || ''}?amount=${(totalAmount * 0.000025).toFixed(8)}&label=Invoice%20${invoice.invoiceNumber}`,
+        // UPI Payment Methods
+        googlepay: `upi://pay?pa=${company?.googlePayUPI || 'yourcompany@upi'}&pn=${encodeURIComponent(company?.name || 'Your Company')}&am=${totalAmount.toFixed(2)}&cu=INR&tr=${invoice.invoiceNumber}`,
+        phonepe: `upi://pay?pa=${company?.phonepeUPI || 'yourcompany@upi'}&pn=${encodeURIComponent(company?.name || 'Your Company')}&am=${totalAmount.toFixed(2)}&cu=INR&tr=${invoice.invoiceNumber}`,
         multiple: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-options/${invoiceId}`
       }
     };
@@ -203,6 +206,16 @@ const generateAndSendPaymentQR = async (req, res) => {
                 <span style="color: #374151; font-weight: 500;">Cash App</span>
               </div>
               
+              <div style="display: flex; align-items: center; padding: 12px; background: #F9FAFB; border-radius: 8px; border-left: 3px solid #4285F4;">
+                <span style="margin-right: 12px; font-size: 20px;">🔵</span>
+                <span style="color: #374151; font-weight: 500;">Google Pay (UPI)</span>
+              </div>
+              
+              <div style="display: flex; align-items: center; padding: 12px; background: #F9FAFB; border-radius: 8px; border-left: 3px solid #7B2CBF;">
+                <span style="margin-right: 12px; font-size: 20px;">📲</span>
+                <span style="color: #374151; font-weight: 500;">PhonePe (UPI)</span>
+              </div>
+              
               <div style="display: flex; align-items: center; padding: 12px; background: #F9FAFB; border-radius: 8px; border-left: 3px solid #F7931A;">
                 <span style="margin-right: 12px; font-size: 20px;">₿</span>
                 <span style="color: #374151; font-weight: 500;">Bitcoin & More</span>
@@ -338,7 +351,9 @@ const generatePaymentQR = async (req, res) => {
         paypal: `https://paypal.me/${company?.paypalHandle || 'yourcompany'}/${totalAmount.toFixed(2)}`,
         venmo: `https://venmo.com/${company?.venmoHandle || 'yourcompany'}?txn=pay&amount=${totalAmount.toFixed(2)}`,
         cashapp: `https://cash.app/$${company?.cashappHandle || 'yourcompany'}/${totalAmount.toFixed(2)}`,
-        stripe: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pay/${invoiceId}`
+        stripe: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pay/${invoiceId}`,
+        googlepay: `upi://pay?pa=${company?.googlePayUPI || 'yourcompany@upi'}&pn=${encodeURIComponent(company?.name || 'Your Company')}&am=${totalAmount.toFixed(2)}&cu=INR&tr=${invoice.invoiceNumber}`,
+        phonepe: `upi://pay?pa=${company?.phonepeUPI || 'yourcompany@upi'}&pn=${encodeURIComponent(company?.name || 'Your Company')}&am=${totalAmount.toFixed(2)}&cu=INR&tr=${invoice.invoiceNumber}`
       };
       qrCodeData = paymentMethods[paymentMethod] || qrCodeData;
     }
