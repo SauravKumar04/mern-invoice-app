@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { getDashboardStats } from '../api/invoices';
 import DashboardStats from '../components/dashboard/DashboardStats';
 import RecentActivity from '../components/dashboard/RecentActivity';
@@ -24,6 +25,7 @@ import {
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -239,7 +241,10 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <button className="group bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-200 transform hover:scale-105 shadow-lg">
+            <button 
+              onClick={() => navigate('/invoices/create')}
+              className="group bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-200 transform hover:scale-105 shadow-lg"
+            >
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
                 Create Invoice
