@@ -15,8 +15,7 @@ const CustomDatePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
-  const dropdownRef = useRef(null);
-  const inputRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     if (value) {
@@ -26,14 +25,17 @@ const CustomDatePicker = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -41,7 +43,9 @@ const CustomDatePicker = ({
     setIsOpen(false);
   };
 
-  const handleInputClick = () => {
+  const handleInputClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!disabled) {
       setIsOpen(!isOpen);
     }
@@ -95,14 +99,13 @@ const CustomDatePicker = ({
   };
 
   return (
-    <div className="relative z-10" ref={dropdownRef}>
+    <div className="relative" ref={containerRef} style={{ zIndex: isOpen ? 1000 : 'auto' }}>
       {/* Input Field */}
       <div
-        ref={inputRef}
         onClick={handleInputClick}
         className={`
           relative w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
-          transition-all duration-200 cursor-pointer
+          transition-all duration-200 cursor-pointer select-none
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 hover:bg-gray-100'}
           ${error ? 'border-red-400 bg-red-50' : ''}
           ${isOpen ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 ring-opacity-20' : ''}
@@ -137,12 +140,7 @@ const CustomDatePicker = ({
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="fixed left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden max-w-sm mx-auto" 
-             style={{
-               top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + window.scrollY + 8 : 'auto',
-               left: inputRef.current ? inputRef.current.getBoundingClientRect().left + window.scrollX : 'auto',
-               width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto'
-             }}>
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden">
           {/* Calendar Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
             <button
