@@ -184,10 +184,10 @@ const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
           
           <button
             onClick={handleCloseClick}
-            className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+            className="absolute right-2 top-2 p-4 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-6 h-6 text-gray-500" />
           </button>
           
           <div className="relative z-10">
