@@ -95,7 +95,7 @@ const CustomDatePicker = ({
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative z-10" ref={dropdownRef}>
       {/* Input Field */}
       <div
         ref={inputRef}
@@ -137,7 +137,12 @@ const CustomDatePicker = ({
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="fixed left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden max-w-sm mx-auto" 
+             style={{
+               top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + window.scrollY + 8 : 'auto',
+               left: inputRef.current ? inputRef.current.getBoundingClientRect().left + window.scrollX : 'auto',
+               width: inputRef.current ? inputRef.current.getBoundingClientRect().width : 'auto'
+             }}>
           {/* Calendar Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
             <button
