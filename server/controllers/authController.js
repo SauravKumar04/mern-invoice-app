@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-const { cloudinary } = require("../config/cloudinary");
+const { cloudinary, cloudinaryConfigured } = require("../config/cloudinary");
 
 const registerUser = async (req, res) => {
   try {
@@ -205,6 +205,9 @@ const updateProfile = async (req, res) => {
     const { name, email, currentPassword, newPassword } = req.body;
     const userId = req.user.userId;
 
+    console.log('Profile update request received for user:', userId);
+    console.log('Cloudinary configured:', cloudinaryConfigured);
+
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -213,21 +216,39 @@ const updateProfile = async (req, res) => {
 
     // Handle avatar upload with Cloudinary
     if (req.file) {
-      // Delete old avatar from Cloudinary if it exists
-      if (user.avatar) {
-        try {
-          // Extract public_id from the old avatar URL
-          const urlParts = user.avatar.split('/');
-          const publicIdWithExtension = urlParts[urlParts.length - 1];
-          const publicId = `user-avatars/${publicIdWithExtension.split('.')[0]}`;
-          await cloudinary.uploader.destroy(publicId);
-        } catch (error) {
-          console.log("Error deleting old avatar from Cloudinary:", error);
-          // Continue even if deletion fails
+      console.log('File upload detected:', req.file.originalname);
+      
+      if (cloudinaryConfigured) {
+        // Delete old avatar from Cloudinary if it exists and is a Cloudinary URL
+        if (user.avatar && user.avatar.includes('cloudinary.com')) {
+          try {
+            // Extract public_id from Cloudinary URL
+            // URL format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/user-avatars/avatar-123.jpg
+            const urlParts = user.avatar.split('/');
+            const uploadIndex = urlParts.findIndex(part => part === 'upload');
+            if (uploadIndex !== -1 && uploadIndex + 2 < urlParts.length) {
+              // Skip version number (v1234567890) and get the path
+              const pathParts = urlParts.slice(uploadIndex + 2);
+              const publicId = pathParts.join('/').split('.')[0]; // Remove file extension
+              console.log('Attempting to delete old avatar with public_id:', publicId);
+              await cloudinary.uploader.destroy(publicId);
+              console.log('Successfully deleted old avatar from Cloudinary');
+            }
+          } catch (error) {
+            console.log("Error deleting old avatar from Cloudinary:", error.message);
+            // Continue even if deletion fails
+          }
         }
+        // Store the Cloudinary URL
+        user.avatar = req.file.path;
+        console.log('New avatar URL saved:', req.file.path);
+      } else {
+        // Cloudinary not configured, inform user
+        return res.status(400).json({ 
+          message: "Avatar upload temporarily unavailable. Please contact administrator.",
+          details: "Cloud storage not configured"
+        });
       }
-      // Store the Cloudinary URL
-      user.avatar = req.file.path;
     }
 
     if (currentPassword && newPassword) {
@@ -242,6 +263,7 @@ const updateProfile = async (req, res) => {
     }
 
     await user.save();
+    console.log('Profile updated successfully for user:', userId);
 
     res.status(200).json({
       message: "Profile updated successfully",
@@ -254,7 +276,10 @@ const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Profile Update Error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Server error",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
