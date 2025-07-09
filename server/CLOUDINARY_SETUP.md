@@ -44,9 +44,10 @@ All uploaded avatars are automatically:
 ## Migration Notes
 
 ### What Changed
-- Removed `multer` package dependency
-- Removed local `uploads` directory serving
+- Kept `multer` package (still needed as core upload library)
 - Added `cloudinary` and `multer-storage-cloudinary` packages
+- Changed from local disk storage to Cloudinary storage
+- Removed local `uploads` directory serving
 - Updated avatar URL handling in frontend components
 
 ### Backward Compatibility
