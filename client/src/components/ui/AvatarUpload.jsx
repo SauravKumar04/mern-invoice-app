@@ -2,7 +2,9 @@ import React, { useState, useRef } from 'react';
 import { Camera, User } from 'lucide-react';
 
 const AvatarUpload = ({ currentAvatar, onAvatarChange, name }) => {
-  const [preview, setPreview] = useState(currentAvatar ? `${import.meta.env.VITE_API || 'http://localhost:4000'}/uploads/${currentAvatar}` : null);
+  const [preview, setPreview] = useState(currentAvatar ? (
+    currentAvatar.startsWith('http') ? currentAvatar : `${import.meta.env.VITE_API || 'http://localhost:4000'}/uploads/${currentAvatar}`
+  ) : null);
   const fileInputRef = useRef(null);
 
   const handleImageChange = (e) => {

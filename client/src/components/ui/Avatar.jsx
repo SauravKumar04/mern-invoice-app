@@ -26,7 +26,10 @@ const Avatar = ({ src, name, size = 'md', className = '' }) => {
       .slice(0, 2);
   };
 
-  const avatarUrl = src ? `${import.meta.env.VITE_API || 'http://localhost:4000'}/uploads/${src}` : null;
+  // Handle both Cloudinary URLs and legacy local file paths
+  const avatarUrl = src ? (
+    src.startsWith('http') ? src : `${import.meta.env.VITE_API || 'http://localhost:4000'}/uploads/${src}`
+  ) : null;
 
   return (
     <div className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-white/20 shadow-sm ${className}`}>
