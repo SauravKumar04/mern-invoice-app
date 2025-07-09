@@ -28,8 +28,7 @@ app.use(
 
 app.use(express.json());
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('uploads'));
+// Note: Static file serving removed - now using Cloudinary for file storage
 
 // Test route
 app.get("/", (req, res) => {

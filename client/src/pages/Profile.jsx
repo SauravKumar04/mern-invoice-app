@@ -163,7 +163,7 @@ const Profile = () => {
               <div className="relative group">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {currentUser?.avatar ? (
-                    <img src={currentUser.avatar} alt="Avatar" className="w-full h-full rounded-2xl object-cover" />
+                    <img src={currentUser.avatar.startsWith('http') ? currentUser.avatar : `${import.meta.env.VITE_API || 'http://localhost:4000'}/uploads/${currentUser.avatar}`} alt="Avatar" className="w-full h-full rounded-2xl object-cover" />
                   ) : (
                     currentUser?.name?.charAt(0).toUpperCase() || 'U'
                   )}
