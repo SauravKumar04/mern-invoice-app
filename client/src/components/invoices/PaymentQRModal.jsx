@@ -157,8 +157,25 @@ const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
 
   const selectedMethod = paymentMethods.find(method => method.id === paymentMethod);
 
+  // Handle backdrop click to close modal
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Handle close button click
+  const handleCloseClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 animate-in slide-in-from-bottom-4">
         
         {/* Header */}
@@ -166,10 +183,11 @@ const PaymentQRModal = ({ invoice, isOpen, onClose, onSendQR }) => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100/30 to-blue-100/20 rounded-full blur-2xl" />
           
           <button
-            onClick={onClose}
-            className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10"
+            onClick={handleCloseClick}
+            className="absolute right-2 top-2 p-4 hover:bg-gray-100 rounded-full transition-colors duration-200 z-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-6 h-6 text-gray-500" />
           </button>
           
           <div className="relative z-10">

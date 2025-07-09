@@ -194,6 +194,8 @@ const InvoiceEdit = () => {
         <InvoiceForm 
           initialValues={{
             ...invoice,
+            issueDate: invoice.issueDate ? new Date(invoice.issueDate) : new Date(),
+            dueDate: invoice.dueDate ? new Date(invoice.dueDate) : null,
             template: invoice.template || 'invoiceTemplate'
           }} 
           onSubmit={handleSubmit} 

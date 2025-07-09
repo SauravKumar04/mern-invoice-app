@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Formik, Form, FieldArray } from 'formik';
 import { TextField, Select, MenuItem, Button } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { toast } from 'react-toastify';
 import TemplateSelector from './TemplateSelector';
+import CustomDatePicker from './CustomDatePicker';
 import { 
   Trash2, 
   Plus, 
@@ -55,8 +53,7 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         <Formik
           initialValues={initialValues}
           onSubmit={onSubmit}
@@ -174,29 +171,11 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
                           <Calendar className="w-4 h-4 text-gray-500" />
                           Issue Date
                         </label>
-                        <DatePicker
+                        <CustomDatePicker
                           value={values.issueDate}
                           onChange={(date) => setFieldValue('issueDate', date)}
-                          renderInput={(params) => 
-                            <TextField 
-                              {...params} 
-                              fullWidth 
-                              variant="outlined" 
-                              size="small"
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '12px',
-                                  backgroundColor: 'rgb(249 250 251)',
-                                  '&:hover fieldset': {
-                                    borderColor: 'rgb(59 130 246)',
-                                  },
-                                  '&.Mui-focused fieldset': {
-                                    borderColor: 'rgb(59 130 246)',
-                                  },
-                                },
-                              }}
-                            />
-                          }
+                          placeholder="Select issue date"
+                          icon={Calendar}
                         />
                       </div>
 
@@ -205,29 +184,11 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
                           <AlertCircle className="w-4 h-4 text-gray-500" />
                           Due Date
                         </label>
-                        <DatePicker
+                        <CustomDatePicker
                           value={values.dueDate}
                           onChange={(date) => setFieldValue('dueDate', date)}
-                          renderInput={(params) => 
-                            <TextField 
-                              {...params} 
-                              fullWidth 
-                              variant="outlined" 
-                              size="small"
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '12px',
-                                  backgroundColor: 'rgb(249 250 251)',
-                                  '&:hover fieldset': {
-                                    borderColor: 'rgb(59 130 246)',
-                                  },
-                                  '&.Mui-focused fieldset': {
-                                    borderColor: 'rgb(59 130 246)',
-                                  },
-                                },
-                              }}
-                            />
-                          }
+                          placeholder="Select due date"
+                          icon={AlertCircle}
                         />
                       </div>
                     </div>
@@ -737,7 +698,6 @@ const InvoiceForm = ({ initialValues, onSubmit, isSubmitting }) => {
           )}
         </Formik>
       </div>
-    </LocalizationProvider>
   );
 };
 
